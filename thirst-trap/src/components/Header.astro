@@ -28,73 +28,82 @@ const logoHref = header?.logoHref ?? "/";
 const logoUrl = header?.logo?.url;
 const logoAlt = header?.logo?.alternativeText ?? "";
 ---
-
-<nav data-theme="bbb-header" class="bg-base-100 border-b border-base-200">
-  <!-- 3 zones laid out and spaced -->
-  <div class="mx-auto max-w-7xl w-full px-4 flex items-center justify-between gap-4 h-16">
-    <!-- Left: logo -->
-    <div class="shrink-0">
-      <a href={logoHref} class="flex items-center gap-2" aria-label="Home">
-        {logoUrl && <img src={logoUrl} alt={logoAlt} class="h-8 w-auto object-contain" />}
-      </a>
-    </div>
-
-    <!-- Center: desktop nav -->
-    <div class="hidden lg:flex flex-1 justify-center">
-      {navItems.length ? (
-        <ul class="menu menu-horizontal gap-2">
-          {navItems.map((item: NavItem) =>
-            item.children?.length ? (
-              <li>
-                <details>
-                  <summary {...linkAttrs(item.link)}>{item.link.label}</summary>
-                  <ul class="p-2 z-10 bg-base-100 border border-base-200">
-                    {item.children.map((c: Link) => (
-                      <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
-                    ))}
-                  </ul>
-                </details>
-              </li>
-            ) : (
-              <li><a {...linkAttrs(item.link)} href={item.link.url}>{item.link.label}</a></li>
-            )
-          )}
-        </ul>
-      ) : null}
-    </div>
-
-    <!-- Right: CTAs + mobile hamburger -->
-    <div class="flex items-center gap-2">
-      {ctas.map((b: Button) => (
-        <a {...linkAttrs(b.link)} href={b.link.url} class={`btn ${variantClass(b.variant)} ${sizeClass(b.size)}`}>
-          {b.link.label}
+<nav data-theme="bbb-header" class="site-header bg-base-100">
+  <div class="mx-auto max-w-7xl w-full px-4">
+    <div class="navbar h-16 border-b border-base-200">
+      <!-- Left: logo -->
+      <div class="navbar-start">
+        <a href={logoHref} class="flex items-center gap-2" aria-label="Home">
+          {logoUrl && <img src={logoUrl} alt={logoAlt} class="h-10 md:h-12 w-auto object-contain" />}
         </a>
-      ))}
+      </div>
 
-      <!-- Mobile menu -->
-      {navItems.length ? (
-        <div class="dropdown dropdown-end lg:hidden">
-          <button tabindex="0" class="btn btn-ghost" aria-label="Open menu">☰</button>
-          <ul tabindex="0" class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-64 border border-base-200">
-            {navItems.map((item: NavItem) => (
-              <>
+      <!-- Center: CTAs (buttons) -->
+      <div class="navbar-center hidden lg:flex gap-2">
+        {ctas.map((b: Button) => (
+          <a
+            {...linkAttrs(b.link)}
+            href={b.link.url}
+            class={`btn ${variantClass(b.variant)} ${sizeClass(b.size)}`}
+          >
+            {b.link.label}
+          </a>
+        ))}
+      </div>
+
+      <!-- Right: desktop nav + mobile hamburger -->
+      <div class="navbar-end gap-2">
+        <!-- Desktop nav -->
+        {navItems.length ? (
+          <ul class="menu menu-horizontal gap-6 hidden lg:flex">
+            {navItems.map((item: NavItem) =>
+              item.children?.length ? (
+                <li class="relative">
+                  <details>
+                    <summary {...linkAttrs(item.link)} class="cursor-pointer">{item.link.label}</summary>
+                    <!-- Solid, on-theme dropdown panel -->
+                    <ul class="mt-2 p-2 z-30 bg-base-100 border border-base-200 rounded-box shadow-2xl w-64">
+                      {item.children.map((c: Link) => (
+                        <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
+                      ))}
+                    </ul>
+                  </details>
+                </li>
+              ) : (
                 <li><a {...linkAttrs(item.link)} href={item.link.url}>{item.link.label}</a></li>
-                {item.children?.length ? (
-                  <ul class="pl-4">
-                    {item.children.map((c: Link) => (
-                      <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
-                    ))}
-                  </ul>
-                ) : null}
-              </>
-            ))}
-            {ctas.length ? <li class="menu-title mt-2">Actions</li> : null}
-            {ctas.map((b: Button) => (
-              <li><a {...linkAttrs(b.link)} href={b.link.url} class={variantClass(b.variant)}>{b.link.label}</a></li>
-            ))}
+              )
+            )}
           </ul>
-        </div>
-      ) : null}
+        ) : null}
+
+        <!-- Mobile hamburger -->
+        {navItems.length ? (
+          <div class="dropdown dropdown-end lg:hidden">
+            <button tabindex="0" class="btn btn-ghost" aria-label="Open menu">☰</button>
+            <ul
+              tabindex="0"
+              class="menu dropdown-content mt-2 p-2 shadow-2xl bg-base-100 rounded-box w-64 border border-base-200 z-30"
+            >
+              {navItems.map((item: NavItem) => (
+                <>
+                  <li><a {...linkAttrs(item.link)} href={item.link.url}>{item.link.label}</a></li>
+                  {item.children?.length ? (
+                    <ul class="pl-4">
+                      {item.children.map((c: Link) => (
+                        <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
+              ))}
+              {ctas.length ? <li class="menu-title mt-2">Actions</li> : null}
+              {ctas.map((b: Button) => (
+                <li><a {...linkAttrs(b.link)} href={b.link.url} class={variantClass(b.variant)}>{b.link.label}</a></li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
     </div>
   </div>
 </nav>

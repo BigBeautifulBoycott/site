@@ -1,0 +1,102 @@
+---
+import Base from "../../layouts/Base.astro";
+import { strapi, unwrap } from "../../lib/strapi";
+
+// Render Strapi "blocks" (Slate AST) to HTML
+function renderBlocks(nodes: any[] = []): string {
+  const esc = (s = "") => String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  const renderText = (t: any) => {
+    let out = esc(t.text ?? "");
+    if (t.code) out = `<code>${out}</code>`;
+    if (t.underline) out = `<u>${out}</u>`;
+    if (t.strikethrough) out = `<s>${out}</s>`;
+    if (t.italic) out = `<em>${out}</em>`;
+    if (t.bold) out = `<strong>${out}</strong>`;
+    return out;
+  };
+
+  const renderChildren = (children: any[] = []) =>
+    children.map((n) => renderNode(n)).join("");
+
+  const renderNode = (node: any): string => {
+    if (node.text !== undefined) return renderText(node);
+
+    const { type, children = [] } = node || {};
+    switch (type) {
+      case "heading": {
+        // Strapi Slate may include "level" (1–6); default to 2
+        const level = Math.min(Math.max(node.level ?? 2, 1), 6);
+        return `<h${level}>${renderChildren(children)}</h${level}>`;
+      }
+      case "paragraph":
+        return `<p>${renderChildren(children)}</p>`;
+      case "quote":
+        return `<blockquote>${renderChildren(children)}</blockquote>`;
+      case "list":
+      case "bulleted-list":
+        return `<ul>${renderChildren(children)}</ul>`;
+      case "numbered-list":
+        return `<ol>${renderChildren(children)}</ol>`;
+      case "list-item":
+        return `<li>${renderChildren(children)}</li>`;
+      case "link": {
+        const href = esc(node.url || node.href || "#");
+        const rel = href.startsWith("/") ? "" : ` rel="noopener noreferrer" target="_blank"`;
+        return `<a href="${href}"${rel}>${renderChildren(children)}</a>`;
+      }
+      case "code":
+        return `<pre><code>${esc(node.code || children?.[0]?.text || "")}</code></pre>`;
+      default:
+        // Fallback: render children inline
+        return renderChildren(children);
+    }
+  };
+
+  return nodes.map(renderNode).join("");
+}
+
+// -----------------------------------------------------------
+// Dynamic policy page (server-rendered so private env is OK)
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+const res = await strapi(
+  `/api/policies?filters[slug][$eq]=${encodeURIComponent(
+    slug!
+  )}&publicationState=live&populate[section]=*`
+);
+
+const data = unwrap<any>(res);
+const policy = Array.isArray(data) ? data[0] : data;
+
+if (!policy) {
+  return new Response("Policy not found", { status: 404 });
+}
+---
+
+<Base>
+  <article class="prose prose-neutral max-w-none">
+    <h1 class="mb-2">{policy.title}</h1>
+
+    <p><strong>Effective Date:</strong> {new Date(policy.effective_date).toLocaleDateString()}</p><br>
+    {policy.summary && <p>{policy.summary}</p>}
+
+
+    {policy.section?.length > 0 && (
+      <section class="mt-8">
+        {policy.section.map((s) => (
+          <div class="mt-8">
+            <h2 class="font-semibold text-xl mb-2">{s.title}</h2>
+            <div class="prose max-w-none" set:html={renderBlocks(s.content)} />
+          </div>
+        ))}
+      </section>
+    )}<br>
+    <p><strong>Contact:</strong> <a href={`mailto:${policy.contact_email}`}>{policy.contact_email}</a></p>
+  </article>
+</Base>

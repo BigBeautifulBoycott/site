@@ -1,0 +1,26 @@
+---
+import Base from "../../layouts/Base.astro";
+import { strapi, unwrap } from "../../lib/strapi";
+
+// Fetch published policies from Strapi
+const res = await strapi("/api/policies?publicationState=live&pagination[pageSize]=100");
+const data = unwrap<any[]>(res) ?? [];
+---
+
+<Base>
+  <h1 class="text-3xl font-bold mb-2">Legal Policies</h1>
+<br>
+  {data.length === 0 ? (
+    <p>No published policies found.</p>
+  ) : (
+    <ul>
+      {data.map((p) => (
+        <li>
+          <a href={`/legal/${p.slug}`}><strong>{p.title}</strong></a>
+           {p.summary && <p>{p.summary}</p>}
+        <br>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>

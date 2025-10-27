@@ -1,8 +1,56 @@
-/* header.css */
-.site-header .menu a {
-    text-underline-offset: 2px;
+/* src/styles/header.css */
+
+/* Header shell (theme-driven colors; no button overrides) */
+.site-header {
+  color: hsl(var(--bc));                 /* base-content */
+  background-color: hsl(var(--b1));      /* base-100 */
+  border-bottom: 1px solid hsl(var(--b2)); /* base-200 */
+  font-size: 1.05rem;
+  backdrop-filter: saturate(1.05) blur(2px);
+  box-shadow: 0 1px 0 rgba(0,0,0,.06);
 }
 
-.site-header .menu a:hover {
-    text-decoration: underline;
+/* Taller, comfy bar */
+.site-header .navbar {
+  height: 4.5rem;
+  align-items: center;
+}
+
+/* Bigger logo, no stretch */
+.site-header .navbar img {
+  height: 2.75rem;      /* ~44px */
+  width: auto;
+  object-fit: contain;
+}
+
+/* Desktop nav links */
+.site-header .menu a,
+.site-header .menu summary {
+  padding: 0.55rem 0.85rem;
+  font-weight: 500;
+  text-underline-offset: 3px;
+  transition: color .15s ease;
+}
+
+/* Hover: use theme primary for text only */
+.site-header .menu a:hover,
+.site-header .menu summary:hover {
+  color: hsl(var(--p));
+  text-decoration: underline;
+}
+
+/* Open dropdown → highlight trigger */
+.site-header details[open] > summary {
+  color: hsl(var(--p));
+}
+
+/* Dropdown panel polish (no button changes) */
+.site-header details > ul,
+.site-header .dropdown-content {
+  margin-top: .5rem;
+  background: hsl(var(--b1));
+  border: 1px solid hsl(var(--b2));
+  border-radius: .5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  min-width: 12rem;
 }
