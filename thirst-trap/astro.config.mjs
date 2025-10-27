@@ -6,6 +6,7 @@ import sitemap from '@astrojs/sitemap';
 // ✅ Pass STRAPI_* vars through Vite’s define for server-only access
 export default defineConfig({
   site: 'https://bigbeautifulboycott.us',
+  output: 'static',
   vite: {
     plugins: [tailwindcss()],
     define: {
