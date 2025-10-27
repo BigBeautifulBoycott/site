@@ -1,0 +1,100 @@
+---
+import type { HeaderType, NavItem, Link, Button } from "../types/header";
+import "../styles/header.css";
+
+const { header } = Astro.props as { header: HeaderType };
+
+function sizeClass(size?: Button["size"]) {
+  return size === "small" ? "btn-sm" : size === "large" ? "btn-lg" : "";
+}
+function variantClass(variant: Button["variant"]) {
+  return variant === "ghost" ? "btn-ghost" : "btn-primary";
+}
+function linkAttrs(l?: Link) {
+  const attrs: Record<string, string> = {};
+  const t = (l?.tracking ?? {}) as Record<string, unknown>;
+  const dataAttrs = (t as any)?.dataAttrs;
+  if (dataAttrs && typeof dataAttrs === "object") {
+    for (const [k, v] of Object.entries(dataAttrs)) attrs[k] = String(v);
+  }
+  if ((t as any)?.id) attrs.id = String((t as any).id);
+  if (l?.ariaLabel) attrs["aria-label"] = l.ariaLabel;
+  return attrs;
+}
+
+const navItems = header?.nav ?? [];
+const ctas = header?.ctas ?? [];
+const logoHref = header?.logoHref ?? "/";
+const logoUrl = header?.logo?.url;
+const logoAlt = header?.logo?.alternativeText ?? "";
+---
+
+<nav data-theme="bbb-header" class="bg-base-100 border-b border-base-200">
+  <!-- 3 zones laid out and spaced -->
+  <div class="mx-auto max-w-7xl w-full px-4 flex items-center justify-between gap-4 h-16">
+    <!-- Left: logo -->
+    <div class="shrink-0">
+      <a href={logoHref} class="flex items-center gap-2" aria-label="Home">
+        {logoUrl && <img src={logoUrl} alt={logoAlt} class="h-8 w-auto object-contain" />}
+      </a>
+    </div>
+
+    <!-- Center: desktop nav -->
+    <div class="hidden lg:flex flex-1 justify-center">
+      {navItems.length ? (
+        <ul class="menu menu-horizontal gap-2">
+          {navItems.map((item: NavItem) =>
+            item.children?.length ? (
+              <li>
+                <details>
+                  <summary {...linkAttrs(item.link)}>{item.link.label}</summary>
+                  <ul class="p-2 z-10 bg-base-100 border border-base-200">
+                    {item.children.map((c: Link) => (
+                      <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            ) : (
+              <li><a {...linkAttrs(item.link)} href={item.link.url}>{item.link.label}</a></li>
+            )
+          )}
+        </ul>
+      ) : null}
+    </div>
+
+    <!-- Right: CTAs + mobile hamburger -->
+    <div class="flex items-center gap-2">
+      {ctas.map((b: Button) => (
+        <a {...linkAttrs(b.link)} href={b.link.url} class={`btn ${variantClass(b.variant)} ${sizeClass(b.size)}`}>
+          {b.link.label}
+        </a>
+      ))}
+
+      <!-- Mobile menu -->
+      {navItems.length ? (
+        <div class="dropdown dropdown-end lg:hidden">
+          <button tabindex="0" class="btn btn-ghost" aria-label="Open menu">☰</button>
+          <ul tabindex="0" class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-64 border border-base-200">
+            {navItems.map((item: NavItem) => (
+              <>
+                <li><a {...linkAttrs(item.link)} href={item.link.url}>{item.link.label}</a></li>
+                {item.children?.length ? (
+                  <ul class="pl-4">
+                    {item.children.map((c: Link) => (
+                      <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ))}
+            {ctas.length ? <li class="menu-title mt-2">Actions</li> : null}
+            {ctas.map((b: Button) => (
+              <li><a {...linkAttrs(b.link)} href={b.link.url} class={variantClass(b.variant)}>{b.link.label}</a></li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  </div>
+</nav>

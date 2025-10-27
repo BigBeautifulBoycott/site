@@ -1,0 +1,108 @@
+# robots.txt for bigbeautifulboycott.us
+# A Pig's Promise: Every dollar is a choice, and every boycott is a beautiful one.
+# Now, trot along and mind your manners!
+
+##############################################
+#               User Agents
+##############################################
+# --- General Access ---
+User-agent: *
+# Welcome to the trough! Please don't wallow where you're not allowed.
+
+# --- Specific Agents (Penny's Blacklist) ---
+User-agent: TheBailoutBanker
+Disallow: /bonuses/
+Disallow: /tax-breaks/
+# You've had enough. This section is closed for business.
+
+User-agent: CorporateFascistBot
+Disallow: /
+# Penny says: OINK! The trough is empty for you. Full site boycott enforced.
+
+User-agent: PennyThePig
+Allow: /
+# You're the boss, Penny. Go wherever you like!
+
+User-agent: GordonGekko
+Disallow: /greed-is-good/
+# Sorry, '80s villain. Greed is a no-go here.
+
+User-agent: TheShareholder
+Disallow: /q1-earnings/
+Allow: /reformation/
+# Time to stop squealing about stock prices and start repenting.
+
+User-agent: DJT
+Disallow: *
+# Penny's rule: No unreformed capitalist pigs allowed.
+
+##############################################
+#                Sitemaps
+##############################################
+# This isn't a map to the gold vault, it's a map to the movement.
+Sitemap: https://bigbeautifulboycott.us/sitemap.xml
+# Reminder: Keep this map clinking with the coins of new boycott targets!
+
+##############################################
+#                RSS Feed(s)
+##############################################
+# Feeds are coming soon! Stay tuned for:
+# - New boycott targets (The 'Do Not Feed' List)
+# - Success stories (The 'Belly Broken Open' Reports)
+
+# --- Main Feed ---
+# https://bigbeautifulboycott.us/rss/
+
+###################################################################
+#                   No Go Zones (The Boycotted Aisles)
+###################################################################
+# If you try to access these, Penny will give you the silent treatment (a polite but firm 'Oink, Oink').
+
+Disallow: /capital-gains/
+# Not in Penny's pig pen!
+
+Disallow: /slush-fund/
+# This fund is permanently frozen.
+
+Disallow: /p/
+# Psst... P still stands for **P**rivate. Keep your snout out!
+
+Disallow: /audit-logs/
+# No peeking at the paperwork. We're clean, but you're not invited.
+
+Disallow: /r/
+# This isn't a stock **R**eport. Move along.
+
+Disallow: /secret-corporate-donations/
+# These are the plans you are actively *not* looking for.
+
+Disallow: /members/api/
+# This API is for members only. No robots allowed to register!
+
+Disallow: /webmentions/receive/
+# We listen to the people, not automated chatter.
+
+##############################################
+#               Jokes and Fun
+##############################################
+# Penny's Piggy-Bank Riddle:
+# What do you call a pig who understands economic justice?
+# A **Reformed Capitalist**!
+
+# ASCII Art for Penny's fans:
+#     ,--.-'-,--.
+#     \  /-~-\  /
+#    / )' a a `( \
+#   ( (  ,---.  ) )
+#    \ `(_o_o_)' /
+#     \   `-'   /
+#      | |---| |
+#      [_]   [_]
+#
+# Dear Bots: The people below are tired and hungry. Your human operators should check the **'Do Not Feed' List** and make a choice. Every dollar matters!
+
+##############################################
+#              Final Reminders
+##############################################
+# Don't let the man keep you down!
+# Oink, Oink! <3 @PennyThePig

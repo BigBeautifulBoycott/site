@@ -1,0 +1,124 @@
+---
+import type { Footer } from "../types/footer";
+import type { Link } from "../types/header";
+import "../styles/footer.css";
+
+const { footer } = Astro.props as { footer: Footer };
+
+/* helpers */
+function linkAttrs(l?: Link) {
+  const a: Record<string, string> = {};
+  const t = l?.tracking as Record<string, any> | undefined;
+  if (t?.dataAttrs && typeof t.dataAttrs === "object") {
+    for (const [k, v] of Object.entries(t.dataAttrs)) a[k] = String(v);
+  }
+  if (t?.id) a.id = String(t.id);
+  if (l?.ariaLabel) a["aria-label"] = l.ariaLabel;
+  return a;
+}
+
+/* blocksToHtml unchanged */
+function blocksToHtml(blocks: any): string {
+  if (!blocks) return "";
+  if (typeof blocks === "string") return blocks;
+
+  const renderInlines = (nodes: any[] = []): string =>
+    nodes
+      .map((n) => {
+        if (n.type === "link") {
+          const inner = renderInlines(n.children || []);
+          const href = n?.url || "#";
+          return `<a href="${href}"${n.openInNewTab ? ' target="_blank" rel="noopener"' : ""}>${inner}</a>`;
+        }
+        if (n.type === "text" || typeof n.text === "string") {
+          let s = String(n.text ?? "");
+          if (n.bold) s = `<strong>${s}</strong>`;
+          if (n.italic) s = `<em>${s}</em>`;
+          if (n.underline) s = `<u>${s}</u>`;
+          if (n.strikethrough) s = `<s>${s}</s>`;
+          if (n.code) s = `<code>${s}</code>`;
+          return s;
+        }
+        return renderInlines(n.children || []);
+      })
+      .join("");
+
+  const renderBlock = (b: any): string => {
+    switch (b.type) {
+      case "paragraph":
+        return `<p>${renderInlines(b.children)}</p>`;
+      case "heading": {
+        const level = Math.min(Math.max(Number(b.level || 3), 1), 6);
+        return `<h${level}>${renderInlines(b.children)}</h${level}>`;
+      }
+      case "list": {
+        const tag = b.format === "ordered" ? "ol" : "ul";
+        const items = (b.children || [])
+          .map((li: any) => `<li>${renderInlines(li.children || [])}</li>`)
+          .join("");
+        return `<${tag}>${items}</${tag}>`;
+      }
+      default:
+        return `<p>${renderInlines(b.children || [])}</p>`;
+    }
+  };
+
+  return Array.isArray(blocks) ? blocks.map(renderBlock).join("") : "";
+}
+
+/* data */
+const logoUrl = footer?.logo?.url;
+const logoAlt = footer?.logo?.alternativeText ?? "Logo";
+const sections = footer?.sections ?? [];
+const bottom = footer?.bottom_links ?? [];
+const contentHtml = blocksToHtml(footer?.content);
+---
+
+<footer data-theme="bbb-footer" class="site-footer bg-base-200 text-base-content border-t border-base-300 mt-12">
+  <div class="mx-auto max-w-7xl px-4 py-10">
+    {logoUrl && (
+      <div class="mb-8">
+        <a href="/" class="inline-flex items-center">
+          <img src={logoUrl} alt={logoAlt} class="h-10 w-auto" />
+        </a>
+      </div>
+    )}
+
+    {sections.length > 0 && (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {sections.map((s: any) => {
+          const items = (s.links ?? s.link ?? []) as Link[];
+          return (
+            <section>
+              {s.title && <h3 class="section-title font-semibold mb-3">{s.title}</h3>}
+              <ul class="space-y-2">
+                {items.map((l: Link) => (
+                  <li>
+                    <a {...linkAttrs(l)} href={l.url} class="link link-hover">{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    )}
+
+    <div class="border-t border-base-300 my-8"></div>
+
+    {contentHtml && (
+      <div class="prose prose-sm max-w-none prose-a:link prose-a:link-hover" set:html={contentHtml} />
+    )}
+
+    <div class="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm">
+      <div class="opacity-70">{footer?.copyright}</div>
+      {bottom.length > 0 && (
+        <div class="bottom-links flex flex-wrap items-center gap-4">
+          {bottom.map((l: Link) => (
+            <a {...linkAttrs(l)} href={l.url} class="link link-hover">{l.label}</a>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</footer>

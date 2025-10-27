@@ -1,0 +1,11 @@
+/* src/styles/global.css */
+@import url("https://fonts.googleapis.com/css2?family=TikTok+Sans:wght@400;500;600;700&display=swap");
+
+@import "tailwindcss";
+
+
+:root { scroll-behavior: smooth; }
+
+body {
+  font-family: "TikTok Sans", ui-sans-serif, system-ui, sans-serif;
+}

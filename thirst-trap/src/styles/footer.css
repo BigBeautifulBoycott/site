@@ -1,0 +1,12 @@
+/* Subtle footer polish */
+.site-footer .section-title {
+    letter-spacing: 0.2px;
+}
+
+.site-footer .fineprint p {
+    margin: 0.25rem 0;
+}
+
+.site-footer .bottom-links a {
+    text-underline-offset: 2px;
+}
