@@ -1,0 +1,19 @@
+# carbon.txt
+[org]
+disclosures = [
+    { doc_type='web-page', url='https://bigbeautifulboycott.us', domain='bigbeautifulboycott.us' },
+    { doc_type='sustainability-page', url='https://bigbeautifulboycott.us/sustainability', domain='bigbeautifulboycott.us' },
+    { doc_type='other', url='https://cf-assets.www.cloudflare.com/slt3lc6tev37/2lg914L21Lyfpcya6weavX/1f239ca65b697e5b3b1ce89bb7141c41/Cloudflare_2024_Emissions_Inventory.pdf', domain='bigbeautifulboycott.us' },
+    { doc_type='other', url='https://github.com/social-impact/focus-areas/environmental-sustainability', domain='bigbeautifulboycott.us' }
+]
+
+[upstream]
+services = [
+    { domain='cloudflare.com', service_type='hosting-provider' },
+    { domain='cloudflare.com', service_type='cdn' },
+    { domain='github.com', service_type='code-repository' },
+    { domain='cloudflare.com', service_type='edge-compute' }
+]
+
+# To Add: https://blog.cloudflare.com/green-hosting-with-cloudflare-pages/
+# https://blog.cloudflare.com/announcing-green-compute/

@@ -1,0 +1,78 @@
+---
+import "../styles/global.css";
+import Seo from "../components/Seo.astro";
+import Header from "../components/Header.astro";
+import FooterComp from "../components/Footer.astro";
+import GTM from "../components/GTM.astro";              // loads head GTM
+import GTMNoscript from "../components/GTMNoscript.astro"; // loads body noscript iframe
+
+import type { Global } from "../types/strapi";
+import type { HeaderType } from "../types/header";
+import type { Footer as FooterType } from "../types/footer";
+
+import { strapi, unwrap, mediaUrl } from "../lib/strapi";
+
+// Fetch Global
+const globalRes = await strapi("/api/global?populate=*");
+const global = (unwrap<Global>(globalRes) ?? {}) as Global;
+if (!global.siteName || !global.siteDescription) {
+  throw new Error("Strapi Global is missing required fields");
+}
+const faviconUrl = mediaUrl(global.favicon?.data?.attributes?.url ?? global.favicon?.url);
+
+// Fetch Header
+let header: HeaderType | null = null;
+try {
+  const headerRes = await strapi(
+    "/api/header"
+      + "?populate[logo][fields][0]=url"
+      + "&populate[logo][fields][1]=alternativeText"
+      + "&populate[nav][populate]=*"
+      + "&populate[ctas][populate]=*"
+  );
+  header = unwrap<HeaderType>(headerRes) ?? null;
+} catch (e: any) {
+  if (!String(e?.message || "").includes("404")) throw e;
+}
+
+// Fetch Footer
+const footerRes = await strapi(
+  "/api/footer"
+    + "?populate[logo][fields][0]=url"
+    + "&populate[logo][fields][1]=alternativeText"
+    + "&populate[sections][populate]=*"
+    + "&populate[bottom_links]=*"
+);
+const footer = (unwrap<FooterType>(footerRes) ?? {}) as FooterType;
+
+// Default theme; theme.js handles switching pre-paint
+const defaultTheme = "bbb-default";
+---
+
+<html lang="en" data-theme={defaultTheme}>
+  <head>
+    <GTM />  <!-- loads dataLayer + gtm.js -->
+    <script src="/theme.js" is:inline></script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <Seo
+      siteName={global.siteName}
+      siteDescription={global.siteDescription}
+      faviconUrl={faviconUrl}
+      seo={global.defaultSeo}
+    />
+  </head>
+
+  <body class="min-h-dvh bg-base-100 text-base-content">
+    <GTMNoscript />  <!-- loads <noscript> GTM iframe -->
+    {header && <Header header={header} />}
+
+    <main class="mx-auto max-w-7xl w-full px-4 py-8">
+      <slot />
+    </main>
+
+    <FooterComp footer={footer} />
+  </body>
+</html>

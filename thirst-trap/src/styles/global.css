@@ -1,0 +1,36 @@
+/* src/styles/global.css */
+@import url("https://fonts.googleapis.com/css2?family=TikTok+Sans:wght@400;500;600;700&display=swap");
+
+/* Load Tailwind + DaisyUI (the actual component layer) */
+@import "tailwindcss";
+@plugin "daisyui";
+
+:root {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "TikTok Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Header link polish */
+.site-header .menu a {
+  text-underline-offset: 2px;
+}
+
+.site-header .menu a:hover {
+  text-decoration: underline;
+}
+
+/* Override the smaller typography scaling in .prose */
+.prose h1 {
+  font-size: 2.25rem; /* text-3xl */
+  line-height: 2.5rem;
+  font-weight: 700;
+}
+
+.prose h2 {
+  font-size: 1.5rem; /* text-2xl */
+  line-height: 2rem;
+  font-weight: 600;
+}

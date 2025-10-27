@@ -1,0 +1,46 @@
+---
+import type { Seo } from "../types/strapi";
+import { mediaUrl } from "../lib/strapi";
+
+interface Props {
+  siteName: string;
+  siteDescription: string;
+  faviconUrl?: string;
+  seo?: Seo;
+  // page-level overrides (optional)
+  title?: string;
+  description?: string;
+  canonical?: string;
+}
+const { siteName, siteDescription, faviconUrl, seo, title, description, canonical } = Astro.props;
+
+const metaTitle = title ?? seo?.metaTitle ?? siteName;
+const metaDescription = description ?? seo?.metaDescription ?? siteDescription;
+const ogImage = mediaUrl(seo?.shareImage?.data?.attributes?.url);
+const robots = seo?.metaRobots ?? "index,follow";
+const canonicalURL = canonical ?? seo?.canonicalURL;
+const structured = seo?.structuredData ? JSON.stringify(seo.structuredData) : null;
+---
+<!-- Basic -->
+<title>{metaTitle}</title>
+<meta name="description" content={metaDescription} />
+{faviconUrl && <link rel="icon" href={faviconUrl} />}
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content={metaTitle} />
+<meta property="og:description" content={metaDescription} />
+{ogImage && <meta property="og:image" content={ogImage} />}
+
+<!-- Twitter -->
+<meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+<meta name="twitter:title" content={metaTitle} />
+<meta name="twitter:description" content={metaDescription} />
+{ogImage && <meta name="twitter:image" content={ogImage} />}
+
+<!-- Robots / Canonical -->
+<meta name="robots" content={robots} />
+{canonicalURL && <link rel="canonical" href={canonicalURL} />}
+
+<!-- JSON-LD -->
+{structured && <script type="application/ld+json" set:html={structured} />}
