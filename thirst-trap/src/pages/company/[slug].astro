@@ -17,6 +17,7 @@ params.set("fields", "name,slug,about,how_to_boycott,Reasoning");
 params.set("populate", "logo,category,tags,Website,Socials,Evaluation");
 params.set("populate[Evaluation][populate]", "reasoning_tags");
 params.set("populate[Evaluation][populate][reasoning_tags][fields]", "name,slug,color");
+params.set("populate[logo][fields]", "url,alternativeText,formats");
 
 const res = await strapi(`/api/companies?${params.toString()}`);
 const arr = unwrap<any[]>(res) ?? [];
@@ -27,16 +28,21 @@ if (!company) {
 }
 
 /* Logo */
-const l = company.logo ?? {};
-const raw = l.url ?? l?.data?.attributes?.url ?? "";
-const fmts = l.formats ?? l?.data?.attributes?.formats ?? {};
-const src = raw ? mediaUrl(raw) : "";
-const srcSmall  = fmts?.thumbnail?.url ? mediaUrl(fmts.thumbnail.url) : "";
-const srcMedium = fmts?.small?.url     ? mediaUrl(fmts.small.url)     : "";
-const logoAlt =
-  l.alternativeText || l?.data?.attributes?.alternativeText || `${company.name} logo`;
-const srcSet = [srcSmall && `${srcSmall} 156w`, srcMedium && `${srcMedium} 500w`, src && `${src} 779w`]
-  .filter(Boolean).join(", ");
+const logoNode =
+  company.logo?.data?.attributes   // v5 populated
+  ?? company.logo                  // sometimes already flat
+  ?? null;
+
+const logoUrlRaw = logoNode?.url ?? "";
+const logoFormats = logoNode?.formats ?? {};
+const src       = logoUrlRaw ? mediaUrl(logoUrlRaw) : "";
+const srcSmall  = logoFormats?.thumbnail?.url ? mediaUrl(logoFormats.thumbnail.url) : "";
+const srcMedium = logoFormats?.small?.url     ? mediaUrl(logoFormats.small.url)     : "";
+const logoAlt   = logoNode?.alternativeText ?? `${company.name} logo`;
+
+const srcSet = [ srcSmall && `${srcSmall} 156w`, srcMedium && `${srcMedium} 500w`, src && `${src} 779w` ]
+  .filter(Boolean)
+  .join(", ");
 
 /* Category */
 const category =
