@@ -76,6 +76,19 @@ const reasonTags = tagsSrc
   .filter(Boolean);
 
 const evalSummary = evaln?.summary ?? "";
+
+function textColorFor(bg: string) {
+  if (!bg) return "white";
+  const c = bg.replace("#","");
+
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+
+  // luminance
+  const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return L > 0.6 ? "black" : "white"; // light bg → black text, dark bg → white text
+}
 ---
 
 <Base>
@@ -107,14 +120,18 @@ const evalSummary = evaln?.summary ?? "";
             {evalSummary && <p class="m-0 text-sm opacity-90">{evalSummary}</p>}
             {reasonTags.length > 0 && (
               <div class="flex flex-wrap gap-2">
-                {reasonTags.map((t) => (
-                  <span
-                    class="badge text-xs normal-case px-2 py-0.5"
-                    style={`background-color: ${t.color ?? "#666"}; border-color: transparent; color: white;`}
-                  >
-                    {t.name}
-                  </span>
-                ))}
+                {reasonTags.map((t) => {
+                  const bg = t.color ?? "#666";
+                  const fg = textColorFor(bg);
+                  return (
+                    <span
+                      class="badge text-xs normal-case px-2 py-0.5"
+                      style={`background-color: ${bg}; border-color: transparent; color: ${fg};`}
+                    >
+                      {t.name}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>
