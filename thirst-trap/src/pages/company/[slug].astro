@@ -119,11 +119,12 @@ function textColorFor(bg: string) {
         <div class="flex flex-wrap items-center gap-2 text-sm opacity-80">
           {category && <span>{category}</span>}
           {badgeClass && <span class={`${badgeClass} uppercase`}>{sentiment}</span>}
+          {evalSummary && <p class="m-0 text-sm opacity-90">{evalSummary}</p>}
         </div>
 
         {(evalSummary || reasonTags.length > 0) && (
           <div class="mt-2 flex flex-col gap-2">
-            {evalSummary && <p class="m-0 text-sm opacity-90">{evalSummary}</p>}
+
             {reasonTags.length > 0 && (
               <div class="flex flex-wrap gap-2">
                 {reasonTags.map((t) => {
