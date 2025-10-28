@@ -17,3 +17,15 @@ export type Global = {
   favicon?: { data?: { attributes: StrapiImage } };
   defaultSeo?: Seo;
 };
+
+export function mediaPath(m: any): string {
+  if (!m) return "";
+  if (typeof m === "string") return m;
+  return m?.data?.attributes?.url || m?.attributes?.url || m?.url || "";
+}
+export function mediaAlt(m: any): string {
+  return m?.data?.attributes?.alternativeText
+      || m?.attributes?.alternativeText
+      || m?.alternativeText
+      || "";
+}

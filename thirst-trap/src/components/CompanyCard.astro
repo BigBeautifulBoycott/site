@@ -1,0 +1,39 @@
+---
+// thirst-trap/src/components/CompanyCard.astro
+import type { Company } from "../types/company";
+
+const { company } = Astro.props as { company: Company };
+
+// Strapi v5 image shape (no .data.attributes)
+const logoUrl = company?.logo?.url || "";
+const logoAlt = company?.logo?.alternativeText || `${company?.name} logo`;
+
+const category =
+  company?.category?.data?.attributes?.name ||
+  company?.category?.attributes?.name ||
+  company?.category?.name;
+
+const tags = (company?.tags?.data ?? [])
+  .map((t: any) => t.attributes?.name)
+  .filter(Boolean);
+---
+<article class="card bg-base-100 border border-base-200 hover:shadow-lg transition">
+  <a href={`/company/${company.slug}`} class="block p-4">
+    <div class="flex items-center gap-3">
+      {logoUrl
+        ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 object-contain rounded" />
+        : <div class="h-10 w-10 rounded bg-base-200" />}
+      <div>
+        <h3 class="font-semibold text-lg">{company.name}</h3>
+        {category && <p class="text-sm opacity-70">{category}</p>}
+      </div>
+    </div>
+
+    {tags.length
+      ? <div class="mt-3 flex flex-wrap gap-2">
+          {tags.slice(0, 4).map((t) => <span class="badge badge-ghost">{t}</span>)}
+          {tags.length > 4 && <span class="badge badge-outline">+{tags.length - 4}</span>}
+        </div>
+      : null}
+  </a>
+</article>

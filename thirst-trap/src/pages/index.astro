@@ -1,8 +1,52 @@
 ---
+// src/pages/index.astro
 import Base from "../layouts/Base.astro";
+import CompanyCard from "../components/CompanyCard.astro";
+import { strapi, unwrap } from "../lib/strapi";
+import type { Company } from "../types/company";
+
+// LIVE only
+const res = await strapi(
+  "/api/companies"
+  + "?publicationState=live"
+  + "&pagination[pageSize]=500"
+  + "&sort=category.name:asc,name:asc"
+  + "&fields=name,slug,state"
+  + "&populate=logo"
+  + "&populate=category"
+  + "&populate=tags"
+);
+
+const companies = (unwrap<any[]>(res) ?? []) as Company[];
+
+function catName(c: Company) {
+  return c?.category?.data?.attributes?.name || "Uncategorized";
+}
+const byCategory = new Map<string, Company[]>();
+for (const c of companies) {
+  const k = catName(c);
+  if (!byCategory.has(k)) byCategory.set(k, []);
+  byCategory.get(k)!.push(c);
+}
+const sections = [...byCategory.entries()]
+  .sort((a,b) => a[0].localeCompare(b[0]))
+  .map(([k, arr]) => [k, arr.sort((x,y) => x.name.localeCompare(y.name))] as const);
 ---
+
 <Base>
-  <main style="padding:2rem">
-	<p>Stuff goes here. this is the base page template and shit</p>
-  </main>
+  <h1 class="text-3xl font-bold mb-6">Companies to Boycott</h1>
+
+  {sections.length === 0 ? (
+	<p>No published companies yet.</p>
+  ) : (
+	sections.map(([category, list]) => (
+	  <>
+		<h2 class="text-xl font-semibold mb-3">{category}</h2>
+		<div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]">
+		  {list.map((c) => <CompanyCard company={c} />)}
+		</div>
+		<div class="my-6"></div>
+	  </>
+	))
+  )}
 </Base>

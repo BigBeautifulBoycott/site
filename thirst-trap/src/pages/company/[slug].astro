@@ -1,0 +1,156 @@
+---
+// src/pages/company/[slug].astro
+import Base from "../../layouts/Base.astro";
+import { strapi, unwrap, mediaUrl } from "../../lib/strapi";
+import type { Company } from "../../types/company";
+import { renderBlocks } from "../../lib/blocks";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+/* Fetch – single populate key, no manual encode */
+const params = new URLSearchParams();
+params.set("publicationState", "live");
+params.set("filters[slug][$eq]", String(slug ?? ""));
+params.set("fields", "name,slug,about,how_to_boycott,Reasoning");
+params.set("populate", "logo,category,tags,Website,Socials,Evaluation");
+params.set("populate[Evaluation][populate]", "reasoning_tags");
+params.set("populate[Evaluation][populate][reasoning_tags][fields]", "name,slug");
+
+const res = await strapi(`/api/companies?${params.toString()}`);
+const arr = unwrap<any[]>(res) ?? [];
+const company = (Array.isArray(arr) ? arr[0] : null) as Company | any;
+
+if (!company) {
+  return new Response("Company not found", { status: 404 });
+}
+
+/* Logo */
+const l = company.logo ?? {};
+const raw = l.url ?? l?.data?.attributes?.url ?? "";
+const fmts = l.formats ?? l?.data?.attributes?.formats ?? {};
+const src = raw ? mediaUrl(raw) : "";
+const srcSmall  = fmts?.thumbnail?.url ? mediaUrl(fmts.thumbnail.url) : "";
+const srcMedium = fmts?.small?.url     ? mediaUrl(fmts.small.url)     : "";
+const logoAlt =
+  l.alternativeText || l?.data?.attributes?.alternativeText || `${company.name} logo`;
+const srcSet = [srcSmall && `${srcSmall} 156w`, srcMedium && `${srcMedium} 500w`, src && `${src} 779w`]
+  .filter(Boolean).join(", ");
+
+/* Category */
+const category =
+  company?.category?.name ??
+  company?.category?.data?.attributes?.name ??
+  null;
+
+/* Topic tags */
+const tags = (company?.tags?.data ?? [])
+  .map((t: any) => t.attributes?.name)
+  .filter(Boolean);
+
+/* Content */
+const about     = company.about;
+const howTo     = company.how_to_boycott;
+const reasoning = company.Reasoning;
+
+/* Evaluation (good|bad only) */
+const evaln = company.Evaluation ?? null;
+const sentiment: "good" | "bad" | undefined =
+  evaln?.sentiment === "good" || evaln?.sentiment === "bad" ? evaln.sentiment : undefined;
+
+const badgeClass =
+  sentiment === "good" ? "badge badge-success normal-case"
+: sentiment === "bad"  ? "badge badge-error normal-case"
+: "";
+
+/* Reasoning tags (supports array or {data:[]}) */
+const tagsSrc = Array.isArray(evaln?.reasoning_tags?.data)
+  ? evaln.reasoning_tags.data
+  : (Array.isArray(evaln?.reasoning_tags) ? evaln.reasoning_tags : []);
+const reasonTags = tagsSrc
+  .map((t: any) => t?.attributes?.name ?? t?.name)
+  .filter(Boolean);
+
+const evalSummary = evaln?.summary ?? "";
+---
+
+<Base>
+  <article class="prose max-w-none">
+    <header class="flex items-start gap-4 mb-6">
+      {src ? (
+        <img
+          src={src}
+          srcset={srcSet}
+          sizes="56px"
+          alt={logoAlt}
+          class="h-14 w-14 object-contain rounded bg-base-200"
+          loading="lazy"
+        />
+      ) : (
+        <div class="h-14 w-14 rounded bg-base-200" />
+      )}
+
+      <div class="flex-1">
+        <h1 class="mb-1">{company.name}</h1>
+
+        <div class="flex flex-wrap items-center gap-2 text-sm opacity-80">
+          {category && <span>{category}</span>}
+          {badgeClass && <span class={`${badgeClass} uppercase`}>{sentiment}</span>}
+        </div>
+
+        {(evalSummary || reasonTags.length > 0) && (
+          <div class="mt-2 flex flex-col gap-2">
+            {evalSummary && <p class="m-0 text-sm opacity-90">{evalSummary}</p>}
+            {reasonTags.length > 0 && (
+              <div class="flex flex-wrap gap-2">
+                {reasonTags.map((t) => (
+                  <span class="badge badge-outline text-xs normal-case px-2 py-0.5">{t}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </header>
+
+    {about && <p class="text-base">{about}</p>}
+
+    {reasoning && (
+      <section class="mt-8">
+        <h2>Details & Evidence</h2>
+        <div class="prose max-w-none" set:html={renderBlocks(reasoning as any[])} />
+      </section>
+    )}
+
+    {howTo && (
+      <section class="mt-8">
+        <h2>How to Boycott</h2>
+        <div class="prose max-w-none" set:html={renderBlocks(howTo as any[])} />
+      </section>
+    )}
+
+    {(company.Website || (company.Socials && company.Socials.length)) && (
+      <section class="mt-8">
+        <h2>Links</h2>
+        <ul class="list-disc pl-6">
+          {company.Website && (
+            <li><a href={company.Website.url}>{company.Website.label ?? "Website"}</a></li>
+          )}
+          {(company.Socials ?? []).map((s: any) => (
+            <li><a href={s.url}>{s.label ?? s.url}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {tags.length > 0 && (
+      <section class="mt-8">
+        <h2>Topics</h2>
+        <div class="flex flex-wrap gap-2">
+          {tags.map((t: string) => <span class="badge badge-ghost">{t}</span>)}
+        </div>
+      </section>
+    )}
+  </article>
+</Base>

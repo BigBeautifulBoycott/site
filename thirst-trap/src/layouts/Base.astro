@@ -1,5 +1,5 @@
 ---
-// src/layouts/Base.astro (only the Strapi calls changed)
+// src/layouts/Base.astro
 import "../styles/global.css";
 import Seo from "../components/Seo.astro";
 import Header from "../components/Header.astro";
@@ -43,6 +43,7 @@ try {
   header = unwrap<HeaderType>(headerRes) ?? null;
 } catch (_) {}
 
+// Footer
 try {
   const footerRes = await strapi(
     "/api/footer"
@@ -58,13 +59,21 @@ const defaultTheme = "bbb-default";
 ---
 <html lang="en" data-theme={defaultTheme}>
   <head>
+    <meta charset="utf-8" />
     <script src="/theme.js" is:inline></script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+
     <Seo
       siteName={global.siteName}
       siteDescription={global.siteDescription}
       faviconUrl={faviconUrl}
       seo={global.defaultSeo}
     />
+
+    <meta name="theme-color" content="#0e2936" />
+
   </head>
   <body class="min-h-dvh bg-base-100 text-base-content">
     {header && <Header header={header} />}
