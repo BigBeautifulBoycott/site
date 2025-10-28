@@ -16,7 +16,7 @@ params.set("filters[slug][$eq]", String(slug ?? ""));
 params.set("fields", "name,slug,about,how_to_boycott,Reasoning");
 params.set("populate", "logo,category,tags,Website,Socials,Evaluation");
 params.set("populate[Evaluation][populate]", "reasoning_tags");
-params.set("populate[Evaluation][populate][reasoning_tags][fields]", "name,slug");
+params.set("populate[Evaluation][populate][reasoning_tags][fields]", "name,slug,color");
 
 const res = await strapi(`/api/companies?${params.toString()}`);
 const arr = unwrap<any[]>(res) ?? [];
@@ -69,7 +69,10 @@ const tagsSrc = Array.isArray(evaln?.reasoning_tags?.data)
   ? evaln.reasoning_tags.data
   : (Array.isArray(evaln?.reasoning_tags) ? evaln.reasoning_tags : []);
 const reasonTags = tagsSrc
-  .map((t: any) => t?.attributes?.name ?? t?.name)
+  .map((t: any) => {
+    const a = t?.attributes ?? t;
+    return a ? { name: a.name, color: a.color } : null;
+  })
   .filter(Boolean);
 
 const evalSummary = evaln?.summary ?? "";
@@ -105,7 +108,12 @@ const evalSummary = evaln?.summary ?? "";
             {reasonTags.length > 0 && (
               <div class="flex flex-wrap gap-2">
                 {reasonTags.map((t) => (
-                  <span class="badge badge-outline text-xs normal-case px-2 py-0.5">{t}</span>
+                  <span
+                    class="badge text-xs normal-case px-2 py-0.5"
+                    style={`background-color: ${t.color ?? "#666"}; border-color: transparent; color: white;`}
+                  >
+                    {t.name}
+                  </span>
                 ))}
               </div>
             )}
