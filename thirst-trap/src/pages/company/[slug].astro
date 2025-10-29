@@ -4,7 +4,26 @@ import { strapi, unwrap, mediaUrl } from "../../lib/strapi";
 import { renderBlocks } from "../../lib/blocks";
 import { iconForPlatform } from "../../lib/socialIcons";
 
-export const prerender = false;
+export async function getStaticPaths() {
+  // fetch only slugs, with pagination safety
+  const pageSize = 100;
+  let page = 1;
+  let paths = [];
+
+  while (true) {
+    const res = await strapi(
+      `/api/companies?publicationState=live&fields=slug&pagination[page]=${page}&pagination[pageSize]=${pageSize}`
+    );
+    const data = unwrap<any[]>(res) ?? [];
+    paths.push(...data.map((c: any) => ({ params: { slug: c.slug } })));
+
+    const meta = (res as any)?.meta?.pagination;
+    if (!meta || page >= (meta.pageCount ?? 1)) break;
+    page++;
+  }
+
+  return paths;
+}
 
 const { slug } = Astro.params;
 
