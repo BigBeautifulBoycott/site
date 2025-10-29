@@ -2,6 +2,27 @@
 import Base from "../../layouts/Base.astro";
 import { strapi, unwrap } from "../../lib/strapi";
 
+/** Generate all /legal/[slug] paths at build time */
+export async function getStaticPaths() {
+  const pageSize = 100;
+  let page = 1;
+  const paths: { params: { slug: string } }[] = [];
+
+  while (true) {
+    const res = await strapi(
+      `/api/policies?publicationState=live&fields=slug&pagination[page]=${page}&pagination[pageSize]=${pageSize}`
+    );
+    const items = unwrap<any[]>(res) ?? [];
+    paths.push(...items.map((p: any) => ({ params: { slug: p.slug } })));
+
+    const meta = (res as any)?.meta?.pagination;
+    if (!meta || page >= (meta.pageCount ?? 1)) break;
+    page++;
+  }
+
+  return paths;
+}
+
 // Render Strapi "blocks" (Slate AST) to HTML
 function renderBlocks(nodes: any[] = []): string {
   const esc = (s = "") => String(s)
@@ -28,7 +49,6 @@ function renderBlocks(nodes: any[] = []): string {
     const { type, children = [] } = node || {};
     switch (type) {
       case "heading": {
-        // Strapi Slate may include "level" (1–6); default to 2
         const level = Math.min(Math.max(node.level ?? 2, 1), 6);
         return `<h${level}>${renderChildren(children)}</h${level}>`;
       }
@@ -51,7 +71,6 @@ function renderBlocks(nodes: any[] = []): string {
       case "code":
         return `<pre><code>${esc(node.code || children?.[0]?.text || "")}</code></pre>`;
       default:
-        // Fallback: render children inline
         return renderChildren(children);
     }
   };
@@ -60,7 +79,7 @@ function renderBlocks(nodes: any[] = []): string {
 }
 
 // -----------------------------------------------------------
-// Dynamic policy page (server-rendered so private env is OK)
+// Static policy page (built at compile time)
 
 const { slug } = Astro.params;
 
@@ -82,9 +101,8 @@ if (!policy) {
   <article class="prose prose-neutral max-w-none">
     <h1 class="mb-2">{policy.title}</h1>
 
-    <p><strong>Effective Date:</strong> {new Date(policy.effective_date).toLocaleDateString()}</p><br>
+    <p><strong>Effective Date:</strong> {new Date(policy.effective_date).toLocaleDateString()}</p><br />
     {policy.summary && <p>{policy.summary}</p>}
-
 
     {policy.section?.length > 0 && (
       <section class="mt-8">
@@ -95,7 +113,7 @@ if (!policy) {
           </div>
         ))}
       </section>
-    )}<br>
+    )}<br />
     <p><strong>Contact:</strong> <a href={`mailto:${policy.contact_email}`}>{policy.contact_email}</a></p>
   </article>
 </Base>
