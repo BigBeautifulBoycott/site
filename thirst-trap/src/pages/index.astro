@@ -10,11 +10,11 @@ const res = await strapi(
   + "?publicationState=live"
   + "&pagination[pageSize]=500"
   + "&sort=category.name:asc,name:asc"
-  + "&fields=name,slug,state"
+  + "&fields=name,slug,state,about"
   + "&populate=logo"
   + "&populate=category"
   + "&populate=tags"
-  + "&populate=Evaluation"
+  + "&populate=Evaluation.reasoning_tags"
 );
 const companies = (unwrap<any[]>(res) ?? []) as Company[];
 
