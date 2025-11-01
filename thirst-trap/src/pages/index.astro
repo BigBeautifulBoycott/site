@@ -1,9 +1,14 @@
 ---
 import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
 import CompanyCard from "../components/CompanyCard.astro";
 import { strapi, unwrap } from "../lib/strapi";
 import type { Company } from "../types/company";
+import heroBanner from "../assets/hero/hero-banner.png";
 
+/* CSS: import at the page level so Astro bundles it correctly */
+import "../styles/hero.css";
+import "../styles/company.css";
 
 /* Fetch: single grid (no category grouping) */
 const res = await strapi(
@@ -17,7 +22,6 @@ const res = await strapi(
   + "&populate=tags"
   + "&populate=Evaluation"
   + "&populate=Evaluation.reasoning_tags"
-
 );
 const companies = (unwrap<any[]>(res) ?? []) as Company[];
 
@@ -44,7 +48,21 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
 ---
 
 <Base>
-  <h1 class="text-3xl font-bold mb-4">The Companies</h1>
+  <!-- HERO: headline is now the page H1 for SEO/AT -->
+  <Hero
+    bg={heroBanner}
+    titleLines={["BIG", "BEAUTIFUL", "BOYCOTT"]}
+    subtitle="Every dollar counts."
+  >
+    <div slot="actions">
+      <a class="btn btn-primary" href="#grid">Browse companies</a>
+      <a class="btn" href="/how-to-boycott">How to boycott</a>
+    </div>
+  </Hero>
+
+
+  <!-- Keep one H1 per page; this becomes H2 -->
+  <h2 class="text-3xl font-bold mb-4">The Companies</h2>
 
   <!-- Sticky mobile-first filter bar -->
   <section class="sticky top-0 z-10 bg-base-100/95 backdrop-blur border-b border-base-200">
