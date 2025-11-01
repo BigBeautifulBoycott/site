@@ -1,21 +1,28 @@
 ---
-/** Props (optional):
- *  - endpoint: override endpoint (defaults to "/api/subscribe")
- */
+/** Optional prop: endpoint (defaults to "/api/subscribe") */
 const { endpoint = "/api/subscribe" } = Astro.props as { endpoint?: string };
 const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const ACTION = "/api/subscribe"; // always use the site's route
 ---
 
-<form id="email-subscribe" class="flex flex-col sm:flex-row gap-2" novalidate>
-  <input name="email" type="email" required placeholder="Your email"
-         class="input input-bordered w-full sm:w-72" />
-  <input name="zip" type="text" inputmode="numeric" placeholder="ZIP (optional)"
-         class="input input-bordered w-full sm:w-32" />
+<!-- hidden sink to block page navigation if JS fails -->
+<iframe name="email-subscribe-sink" style="display:none;"></iframe>
 
-  <div class="cf-turnstile"
-       data-sitekey={TURNSTILE_SITE_KEY}
-       data-callback="onTurnstile"
-       data-size="compact"></div>
+<form
+  id="email-subscribe"
+  method="POST"
+  action={ACTION}
+  target="email-subscribe-sink"
+  class="flex flex-col sm:flex-row gap-2"
+  novalidate
+>
+  <input name="email" type="email" required autocomplete="email"
+         placeholder="Your email" class="input input-bordered w-full sm:w-72" />
+  <input name="zip" type="text" inputmode="numeric" autocomplete="postal-code"
+         placeholder="ZIP (optional)" class="input input-bordered w-full sm:w-32" />
+
+  <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}
+       data-callback="onTurnstile" data-size="compact"></div>
 
   <button type="submit" class="btn btn-primary">Join</button>
 </form>
@@ -23,39 +30,43 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 <p id="email-subscribe-msg" class="text-sm mt-2" aria-live="polite"></p>
 
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-<script is:inline>
-  const endpoint = {endpoint: `${endpoint}`}.endpoint; // "/api/subscribe" on this domain
-  let turnstileToken = "";
 
+<script is:inline>
+  // robust: never shadow; compile-time-injected default kept as string
+  const API_ENDPOINT = `${endpoint || "/api/subscribe"}`;
+
+  let turnstileToken = "";
   // @ts-ignore
   window.onTurnstile = (t) => { turnstileToken = t; };
 
   const form = document.querySelector("#email-subscribe");
   const msg  = document.querySelector("#email-subscribe-msg");
 
-  form?.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async (e) => {
+    // Always stop navigation; we handle network ourselves.
     e.preventDefault();
     msg.textContent = "";
+
     const btn = form.querySelector('button[type="submit"]');
     btn?.setAttribute("disabled", "");
 
-    const data = Object.fromEntries(new FormData(form));
-    data["cf-turnstile-response"] = turnstileToken;
+    const payload = Object.fromEntries(new FormData(form));
+    payload["cf-turnstile-response"] = turnstileToken;
 
     try {
-      const res  = await fetch(endpoint, {
+      const res  = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.error) throw new Error();
+      if (!res.ok || body.error) throw 0;
 
       msg.textContent = "You're in.";
       form.reset();
       turnstileToken = "";
       // @ts-ignore
-      window.turnstile?.reset();
+      window.turnstile?.reset?.();
     } catch {
       msg.textContent = "Try again.";
     } finally {
