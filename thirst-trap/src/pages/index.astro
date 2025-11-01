@@ -4,6 +4,7 @@ import CompanyCard from "../components/CompanyCard.astro";
 import { strapi, unwrap } from "../lib/strapi";
 import type { Company } from "../types/company";
 
+
 /* Fetch: single grid (no category grouping) */
 const res = await strapi(
   "/api/companies"

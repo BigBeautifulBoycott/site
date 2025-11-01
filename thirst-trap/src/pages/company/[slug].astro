@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import { strapi, unwrap, mediaUrl } from "../../lib/strapi";
 import { renderBlocks } from "../../lib/blocks";
 import { iconForPlatform } from "../../lib/socialIcons";
+import CompanyHeader from "../../components/CompanyHeader.astro";
 
 export async function getStaticPaths() {
   // fetch only slugs, with pagination safety
@@ -119,52 +120,7 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
 <Base>
   <article class="prose max-w-none">
     <!-- Header -->
-    <header class="flex items-start gap-4 mb-6">
-      {src ? (
-        <img
-          src={src}
-          srcset={srcSet}
-          sizes="56px"
-          alt={logoAlt}
-          class="h-14 w-14 object-contain rounded bg-base-200"
-          loading="lazy"
-        />
-      ) : (
-        <div class="h-14 w-14 rounded bg-base-200" />
-      )}
-
-      <div class="flex-1">
-        <h1 class="mb-1">{company.name}</h1>
-        <div class="flex flex-wrap items-center gap-2 text-sm opacity-80">
-          {category && <span>{category}</span>}
-          {badgeClass && <span class={`${badgeClass} uppercase`}>{sentiment}</span>}
-        </div>
-
-        {about && <p class="text-base">{about}</p>}
-
-
-        {(evalSummary || reasonTags.length > 0) && (
-          <div class="mt-2 flex flex-col gap-2">
-            {evalSummary && <p class="m-0 text-sm opacity-90">{evalSummary}</p>}
-
-            {reasonTags.length > 0 && (
-              <div class="flex flex-wrap gap-2">
-                {reasonTags.map((t) => (
-                  <span
-                    class="badge px-2 py-0.5 text-xs"
-                    style={`background:${t.color};color:${textColorFor(t.color)};border:none`}
-                  >
-                    {t.name}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </header>
-
-
+    <CompanyHeader company={company} />
 
     {reasoning && (
       <section class="mt-8">
