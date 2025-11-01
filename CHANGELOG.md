@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.2](https://github.com/BigBeautifulBoycott/site/compare/v1.3.1...v1.3.2) (2025-11-01)
+
+
+### Bug Fixes
+
+* Footer subscribe location ([ca19af8](https://github.com/BigBeautifulBoycott/site/commit/ca19af8a61fce923e9053e0e7488c5fb6cabdea1))
+* subscribe ([20bb31d](https://github.com/BigBeautifulBoycott/site/commit/20bb31dc863293012e5ee4f16d02552ec62a87ae))
+* Temp header image png FIX ME ([4c623ab](https://github.com/BigBeautifulBoycott/site/commit/4c623abc9a0fa14150cab4611b38f9a04a9ee7dc))
+
 ## [1.3.1](https://github.com/BigBeautifulBoycott/site/compare/v1.3.0...v1.3.1) (2025-11-01)
 
 
