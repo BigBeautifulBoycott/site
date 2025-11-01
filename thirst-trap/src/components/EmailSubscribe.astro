@@ -30,10 +30,8 @@ const ACTION = "/api/subscribe"; // always use the site's route
 <p id="email-subscribe-msg" class="text-sm mt-2" aria-live="polite"></p>
 
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
 <script is:inline>
-  // robust: never shadow; compile-time-injected default kept as string
-  const API_ENDPOINT = `${endpoint || "/api/subscribe"}`;
+  const API_ENDPOINT = "/api/subscribe";
 
   let turnstileToken = "";
   // @ts-ignore
@@ -43,10 +41,8 @@ const ACTION = "/api/subscribe"; // always use the site's route
   const msg  = document.querySelector("#email-subscribe-msg");
 
   form.addEventListener("submit", async (e) => {
-    // Always stop navigation; we handle network ourselves.
     e.preventDefault();
     msg.textContent = "";
-
     const btn = form.querySelector('button[type="submit"]');
     btn?.setAttribute("disabled", "");
 
@@ -54,7 +50,7 @@ const ACTION = "/api/subscribe"; // always use the site's route
     payload["cf-turnstile-response"] = turnstileToken;
 
     try {
-      const res  = await fetch(API_ENDPOINT, {
+      const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
