@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1](https://github.com/BigBeautifulBoycott/site/compare/v1.3.0...v1.3.1) (2025-11-01)
+
+
+### Bug Fixes
+
+* api endpoint ([ce315ce](https://github.com/BigBeautifulBoycott/site/commit/ce315ceb80422e50330969a9823bd4782102506b))
+* email subscribe ([18752b5](https://github.com/BigBeautifulBoycott/site/commit/18752b5eff4213b2538e502413cd0290060d16c4))
+* shit ([9161762](https://github.com/BigBeautifulBoycott/site/commit/9161762941980d23cb8fd1ae8c60e9667f77ecf7))
+
 ## [1.3.0](https://github.com/BigBeautifulBoycott/site/compare/v1.2.0...v1.3.0) (2025-11-01)
 
 
