@@ -1,0 +1,42 @@
+---
+import { Image } from "astro:assets";
+import "../styles/hero.css";
+
+interface Props {
+  bg: ImageMetadata;          // /src/assets/hero/hero-banner.png (from Canva)
+  titleLines?: string[];
+  subtitle?: string;
+}
+
+const { bg, titleLines = [], subtitle } = Astro.props;
+---
+
+<header class="hero" role="banner" aria-labelledby="hero-title">
+  <div class="hero__stage">
+    <!-- Baked art (coins + blob + gradient + pig) -->
+    <Image
+      src={bg}
+      alt=""
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      formats={["avif","webp","png"]}
+      widths={[800, 1200, 1600, 1900, 2200]}
+      sizes="100vw"
+      class="hero__bg"
+    />
+
+    <!-- Accessible text overlay -->
+    <div class="hero__copy">
+      {titleLines.length > 0 && (
+        <h1 id="hero-title" class="hero__title hero__title--stack">
+          {titleLines.map((line) => <span class="hero__line">{line}</span>)}
+        </h1>
+      )}
+      {subtitle && <p class="hero__subtitle">{subtitle}</p>}
+      <div class="hero__actions">
+        <slot name="actions" />
+      </div>
+    </div>
+  </div>
+</header>

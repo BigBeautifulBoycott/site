@@ -1,0 +1,54 @@
+/* ==========================================================================
+   HERO (baked artwork background + HTML text)
+   ========================================================================== */
+
+:root{
+  --hero-max-w: 1280px;
+  --hero-pad: clamp(16px, 3vw, 24px);
+  --hero-text: #fff;
+  --hero-subtle: #f0c25e;
+}
+
+/* Shell */
+.hero{ width:100%; margin:0 auto; }
+
+/* Fixed-proportion stage: scales the whole image as one unit */
+.hero__stage{
+  position: relative;
+  width: min(var(--hero-max-w), 92vw);
+  margin-inline: auto;
+  aspect-ratio: 1900 / 630;   /* match your Canva export */
+  overflow: hidden;
+  border-radius: 6px;          /* optional */
+}
+
+/* Baked art fills the stage */
+.hero__bg{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit: cover;
+  object-position: center;
+  display:block;
+}
+
+/* Text overlay (bottom-left) */
+.hero__copy{
+  position:absolute;
+  inset:auto auto 0 0;
+  padding: var(--hero-pad);
+  color: var(--hero-text);
+  max-width: 48rem;
+}
+
+.hero__title{ margin:0 0 .5rem; line-height:1.05; font-weight:900; }
+.hero__title--stack{ font-size: clamp(2rem, 5.8vw, 4rem); text-transform: uppercase; }
+.hero__title--stack .hero__line{ display:block; }
+
+.hero__subtitle{ margin:0 0 1rem; font-size: clamp(1rem, 1.3vw, 1.125rem); color: var(--hero-subtle); }
+.hero__actions{ display:flex; gap:.75rem; flex-wrap:wrap; }
+
+/* Small screens */
+@media (max-width: 720px){
+  .hero__stage{ width:100%; border-radius:0; }
+  .hero__title--stack{ font-size: clamp(1.8rem, 8vw, 2.4rem); }
+}
