@@ -2,7 +2,7 @@
 import type { StrapiImage } from "./strapi";
 
 export type Tag = { name: string; slug: string; summary?: string };
-export type Category = { name: string; slug: string; description?: string };
+export type Category = { name: string; slug: string; description?: string; color?: string };
 export type Link = {
   label: string;
   url: string;
