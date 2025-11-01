@@ -8,17 +8,26 @@ function authHeaders() {
 }
 
 export async function strapi(path: string, init: RequestInit = {}) {
+  // ✅ same join logic you had
   const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
-  const res = await fetch(url, { ...init, headers: { ...(init.headers || {}), ...authHeaders() } });
+  const headers = { ...(init.headers as any), ...authHeaders() };
+
+  // ✅ read the body ONCE to avoid “Body has already been read”
+  const res = await fetch(url, { ...init, headers });
+  const raw = await res.text();
+
+  let data: any = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { /* non-JSON */ }
+
   if (!res.ok) {
-    let detail = "";
-    try {
-      const body = await res.json();
-      detail = body?.error?.message || JSON.stringify(body);
-    } catch { detail = await res.text(); }
+    const detail =
+      data?.error?.message ||
+      data?.message ||
+      raw?.slice(0, 500);
     throw new Error(`Strapi ${res.status} for ${path} :: ${detail}`);
   }
-  return res.json();
+
+  return data;
 }
 
 /** Works with Strapi v4 (data.attributes) and v5 (data) */
