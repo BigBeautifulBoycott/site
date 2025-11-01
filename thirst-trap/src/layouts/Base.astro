@@ -4,6 +4,8 @@ import "../styles/global.css";
 import Seo from "../components/Seo.astro";
 import Header from "../components/Header.astro";
 import FooterComp from "../components/Footer.astro";
+import GTM from "../components/GTM.astro";
+import GTMNoscript from "../components/GTMNoscript.astro";
 
 import type { Global } from "../types/strapi";
 import type { HeaderType } from "../types/header";
@@ -61,6 +63,8 @@ const defaultTheme = "bbb-default";
   <head>
     <meta charset="utf-8" />
     <script src="/theme.js" is:inline></script>
+    <GTM />
+
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
@@ -76,6 +80,7 @@ const defaultTheme = "bbb-default";
 
   </head>
   <body class="min-h-dvh bg-base-100 text-base-content">
+    <GTMNoscript />
     {header && <Header header={header} />}
     <main class="mx-auto max-w-7xl w-full px-4 py-8">
       <slot />
