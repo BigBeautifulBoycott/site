@@ -1,0 +1,102 @@
+---
+// src/components/Faq.astro
+// Trendy, accessible FAQ with soft gradients + glassy cards.
+---
+
+<section
+  id="bbb-faq"
+  aria-labelledby="faq-heading"
+  class="relative mb-10 overflow-hidden rounded-3xl border border-base-300/70 bg-gradient-to-br from-base-200/80 via-base-100 to-base-100 shadow-sm"
+>
+  <!-- Decorative blobs -->
+  <div class="pointer-events-none absolute -top-24 -left-24 size-72 rounded-full bg-primary/10 blur-3xl"></div>
+  <div class="pointer-events-none absolute -bottom-28 -right-24 size-72 rounded-full bg-secondary/10 blur-3xl"></div>
+
+  <div class="p-4 sm:p-6 lg:p-8">
+    <h2 id="faq-heading" class="text-3xl font-extrabold tracking-tight mb-5">
+      What is the Big Beautiful Boycott?
+    </h2>
+
+    <div class="grid gap-4 lg:gap-6 md:grid-cols-2">
+      <!-- Card -->
+      <article
+        class="group card bg-base-100/90 border border-base-300/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+      >
+        <div class="card-body">
+          <div class="flex items-start gap-3">
+            <!-- Icon -->
+            <svg class="mt-0.5 size-6 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 3a9 9 0 1 0 9 9A9.01 9.01 0 0 0 12 3Zm1 13h-2v-2H9v-2h2V8h2v2h2v2h-2Z"/>
+            </svg>
+            <p class="leading-relaxed">
+              The Big Beautiful Boycott is a nonpartisan nationwide movement reclaiming the
+              power of the people through collective action. Every dollar is a choice, and by
+              withholding our spending we are taking a stand for fairness, democracy, and human
+              dignity – one dollar at a time.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article
+        class="group card bg-base-100/90 border border-base-300/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+      >
+        <div class="card-body">
+          <div class="flex items-start gap-3">
+            <svg class="mt-0.5 size-6 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 8a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4Zm-7 9a7 7 0 0 1 14 0v1H5Z"/>
+            </svg>
+            <div>
+              <h3 class="text-xl font-semibold mb-1">How long does it last?</h3>
+              <p class="leading-relaxed">
+                The Big Beautiful Boycott began November 1, 2025 — and it lasts until We The People
+                win our seat at the table. We’ll stop when the government stops denying us a voice.
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article
+        class="group card bg-base-100/90 border border-base-300/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+      >
+        <div class="card-body">
+          <div class="flex items-start gap-3">
+            <svg class="mt-0.5 size-6 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 3 2 9l10 6 10-6-10-6Zm0 8.74L5.32 8.5 12 4.26 18.68 8.5 12 11.74Z"/>
+            </svg>
+            <div>
+              <h3 class="text-xl font-semibold mb-1">Why is there not a list of demands?</h3>
+              <p class="leading-relaxed">
+                There’s no list of demands because we’re not asking — we’re acting. The goal is simple:
+                remove their money, remove their power. Only then will We The People have a real seat at
+                the table to decide the future of our country.
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article
+        class="group card bg-base-100/90 border border-base-300/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+      >
+        <div class="card-body">
+          <div class="flex items-start gap-3">
+            <svg class="mt-0.5 size-6 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4 4h16v4H4zm0 6h10v10H4z"/>
+            </svg>
+            <div>
+              <h3 class="text-xl font-semibold mb-1">How does it work?</h3>
+              <p class="leading-relaxed">
+                It’s a slow burn — and we’re building power week by week. Every Saturday, 10 new
+                companies make the Big Beautiful Boycott list. We provide you the reasons why and
+                sources to get you started if you want to dive deeper on the “why.” The more we boycott,
+                the hotter it gets for billionaires and corrupt political players.
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

@@ -5,6 +5,9 @@ import CompanyCard from "../components/CompanyCard.astro";
 import { strapi, unwrap } from "../lib/strapi";
 import type { Company } from "../types/company";
 import heroBanner from "../assets/hero/beautiful-banner.png";
+import Faq from "../components/Faq.astro";
+import heroFix from "../assets/hero-fix-me.png";
+import { Image } from "astro:assets";
 
 /* CSS: import at the page level so Astro bundles it correctly */
 import "../styles/hero.css";
@@ -49,7 +52,7 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
 
 <Base>
   <!-- HERO: headline is now the page H1 for SEO/AT -->
-  <Hero
+  <!-- <Hero
     bg={heroBanner}
     titleLines={["BIG", "BEAUTIFUL", "BOYCOTT"]}
     subtitle="Every dollar counts."
@@ -58,44 +61,78 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
       <a class="btn btn-primary" href="#grid">Browse companies</a>
       <a class="btn" href="/how-to-boycott">How to boycott</a>
     </div>
-  </Hero>
+  </Hero>-->
+  <!-- Full-width (within container) responsive header image -->
+  <figure class="mb-6 overflow-hidden rounded-2xl shadow-sm max-h-[400px]">
+    <Image
+      src={heroFix}
+      alt="Big Beautiful Boycott header artwork"
+      widths={[640, 960, 1280, 1536, 1920]}
+      sizes="(max-width: 1024px) 100vw, 1024px"
+      format="webp"
+      quality={75}
+      loading="lazy"
+      decoding="async"
+      fetchpriority="high"
+      class="w-full rounded-2xl shadow-sm"
+    />
+  </figure>
 
+
+  <Faq />
 
   <!-- Keep one H1 per page; this becomes H2 -->
   <h2 class="text-3xl font-bold mb-4">The Companies</h2>
 
-  <!-- Sticky mobile-first filter bar -->
-  <section class="sticky top-0 z-10 bg-base-100/95 backdrop-blur border-b border-base-200">
-    <div class="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4">
-      <input id="q" type="search" placeholder="Search companies, categories, tags…" class="input input-bordered w-full" />
+  <!-- Sticky, compact filter bar -->
+  <section id="filters" class="sticky top-0 z-20 backdrop-blur bg-base-100/90 border-b border-base-200">
+    <div class="mx-auto max-w-7xl px-4 py-3">
+      <div id="filters-surface" class="rounded-2xl border border-base-300/70 bg-base-100/95 shadow-sm">
+        <div class="p-3 sm:p-4">
+          <!-- Single row, left-aligned; wraps gracefully on mobile -->
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
 
-      <select id="cat" class="select select-bordered w-full">
-        <option value="">All categories</option>
-        {allCategories.map((c) => <option value={c}>{c}</option>)}
-      </select>
+            <!-- Search (left, grows) -->
+            <label class="relative flex-1 min-w-[16rem]">
+              <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60"
+                   viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
+              </svg>
+              <input id="q" type="search"
+                     placeholder="Search companies or categories…"
+                     class="input input-bordered input-sm w-full pl-9" />
+            </label>
 
-      <select id="tag" class="select select-bordered w-full">
-        <option value="">All tags</option>
-        {allTags.map((t) => <option value={t}>{t}</option>)}
-      </select>
+            <!-- Category -->
+            <select id="cat" class="select select-bordered select-sm">
+              <option value="">All categories</option>
+              {allCategories.map((c) => <option value={c}>{c}</option>)}
+            </select>
 
-      <div class="flex gap-2">
-        <select id="sent" class="select select-bordered flex-1">
-          <option value="">All</option>
-          <option value="bad">Bad only</option>
-          <option value="good">Good only</option>
-        </select>
-        <select id="sort" class="select select-bordered flex-1">
-          <option value="name_asc">Name A–Z</option>
-          <option value="cat_asc">Category A–Z</option>
-          <option value="sent_bad_first">Sentiment (bad → good)</option>
-        </select>
+            <!-- Sort (only the four you asked for) -->
+            <select id="sort" class="select select-bordered select-sm">
+              <option value="name_asc">Name A–Z</option>
+              <option value="name_desc">Name Z–A</option>
+              <option value="cat_asc">Category A–Z</option>
+              <option value="cat_desc">Category Z–A</option>
+            </select>
+
+            <!-- Count + Clear -->
+            <span id="count" class="badge badge-ghost ml-auto">0 results</span>
+            <button id="clear" type="button" class="btn btn-ghost btn-sm">Clear</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
+
+
+
+
   <!-- Single grid of cards -->
-  <div id="grid" class="grid gap-4 p-3 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]">
+  <div id="grid" class="mt-4 grid gap-4 p-3 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]">
+
     {companies.map((c) => {
       const cat = catName(c);
       const tags = tagNames(c);
@@ -121,10 +158,10 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
 
     const iq = $("#q");
     const ic = $("#cat");
-    const it = $("#tag");
-    const isent = $("#sent");
     const isort = $("#sort");
-
+    const ibar = $("#filters-surface");
+    const btnClear = $("#clear");
+    const badgeCount = $("#count");
     const grid = $("#grid");
 
     function sortCards(mode) {
@@ -152,18 +189,29 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
     function applyFilters() {
       const q = (iq.value || "").trim().toLowerCase();
       const cat = (ic.value || "").toLowerCase();
-      const tag = (it.value || "").toLowerCase();
-      const sent = (isent.value || "");
+      let visible = 0;
       for (const el of $$(".card-wrap")) {
         const name = el.dataset.name || "";
         const category = el.dataset.category || "";
         const tags = el.dataset.tags || "";
-        const sentiment = el.dataset.sentiment || "";
         const matchesQ = !q || name.includes(q) || category.includes(q) || tags.includes(q);
         const matchesCat = !cat || category === cat;
-        const matchesTag = !tag || tags.split("|").includes(tag);
-        const matchesSent = !sent || sentiment === sent;
-        el.classList.toggle("hidden", !(matchesQ && matchesCat && matchesTag && matchesSent));
+        const show = matchesQ && matchesCat;
+        el.classList.toggle("hidden", !show);
+        if (show) visible++;
+      }
+      // Update badge
+      if (badgeCount) {
+        badgeCount.textContent = `${visible} result${visible === 1 ? "" : "s"}`;
+      }
+    }
+
+    // Sticky elevation when scrolling
+    function updateBarShadow() {
+      if (window.scrollY > 8) {
+        ibar.classList.add("shadow-md");
+      } else {
+        ibar.classList.remove("shadow-md");
       }
     }
 
@@ -172,11 +220,14 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
 
     iq.addEventListener("input", debounced(applyFilters));
     ic.addEventListener("change", applyFilters);
-    it.addEventListener("change", applyFilters);
-    isent.addEventListener("change", applyFilters);
     isort.addEventListener("change", () => sortCards(isort.value));
+    btnClear.addEventListener("click", () => { iq.value = ""; ic.value = ""; applyFilters(); });
+
+    window.addEventListener("scroll", updateBarShadow, { passive: true });
 
     applyFilters();
     sortCards(isort.value);
+    updateBarShadow();
   </script>
+
 </Base>
