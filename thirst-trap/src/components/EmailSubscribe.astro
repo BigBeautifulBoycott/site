@@ -1,11 +1,8 @@
 ---
-/** Optional prop: endpoint (defaults to "/api/subscribe") */
-const { endpoint = "/api/subscribe" } = Astro.props as { endpoint?: string };
 const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
-const ACTION = "/api/subscribe"; // always use the site's route
+const ACTION = "/api/subscribe";
 ---
 
-<!-- hidden sink to block page navigation if JS fails -->
 <iframe name="email-subscribe-sink" style="display:none;"></iframe>
 
 <form
@@ -21,8 +18,11 @@ const ACTION = "/api/subscribe"; // always use the site's route
   <input name="zip" type="text" inputmode="numeric" autocomplete="postal-code"
          placeholder="ZIP (optional)" class="input input-bordered w-full sm:w-32" />
 
-  <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}
-       data-callback="onTurnstile" data-size="compact"></div>
+  <div id="ts-box"
+       class="cf-turnstile"
+       data-sitekey={TURNSTILE_SITE_KEY}
+       data-theme="light"
+       data-size="compact"></div>
 
   <button type="submit" class="btn btn-primary">Join</button>
 </form>
@@ -32,13 +32,16 @@ const ACTION = "/api/subscribe"; // always use the site's route
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script is:inline>
   const API_ENDPOINT = "/api/subscribe";
-
-  let turnstileToken = "";
-  // @ts-ignore
-  window.onTurnstile = (t) => { turnstileToken = t; };
-
   const form = document.querySelector("#email-subscribe");
   const msg  = document.querySelector("#email-subscribe-msg");
+  const box  = document.querySelector("#ts-box");
+  let widgetId = null;
+
+  // Ensure we can fetch a token on demand
+  window.addEventListener("load", () => {
+    // @ts-ignore
+    if (window.turnstile && box) widgetId = window.turnstile.render(box);
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -46,24 +49,32 @@ const ACTION = "/api/subscribe"; // always use the site's route
     const btn = form.querySelector('button[type="submit"]');
     btn?.setAttribute("disabled", "");
 
+    // Always get a token. If empty → block submit.
+    // @ts-ignore
+    const token = window.turnstile?.getResponse?.(widgetId);
+    if (!token) {
+      msg.textContent = "Please complete the check.";
+      btn?.removeAttribute("disabled");
+      return;
+    }
+
     const payload = Object.fromEntries(new FormData(form));
-    payload["cf-turnstile-response"] = turnstileToken;
+    payload["cf-turnstile-response"] = token;
 
     try {
-      const res = await fetch(API_ENDPOINT, {
+      const res  = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.error) throw 0;
+      if (!res.ok || body.error) throw body;
 
       msg.textContent = "You're in.";
       form.reset();
-      turnstileToken = "";
       // @ts-ignore
-      window.turnstile?.reset?.();
-    } catch {
+      window.turnstile?.reset?.(widgetId);
+    } catch (err) {
       msg.textContent = "Try again.";
     } finally {
       btn?.removeAttribute("disabled");
