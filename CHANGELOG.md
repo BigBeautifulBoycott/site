@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/BigBeautifulBoycott/site/compare/v1.2.0...v1.3.0) (2025-11-01)
+
+
+### Features
+
+* company page header improments ([0af8f11](https://github.com/BigBeautifulBoycott/site/commit/0af8f11f2d816ba0bfaac52ef448630c8758e4e0))
+* company page header improments ([862aa69](https://github.com/BigBeautifulBoycott/site/commit/862aa69bbef0d91a75e2903dbb806e0adc28b5df))
+* company styles ([13a3e8f](https://github.com/BigBeautifulBoycott/site/commit/13a3e8f50660312332ed7667836696de04ec245d))
+* company styles ([445110c](https://github.com/BigBeautifulBoycott/site/commit/445110ce498e8c67c4ff99e7814b7517b5907f67))
+* email subscribe ([ff80fe8](https://github.com/BigBeautifulBoycott/site/commit/ff80fe8dce44a12397855901e79251f975e8842e))
+* Google Tag Manager ([68ad703](https://github.com/BigBeautifulBoycott/site/commit/68ad70349a69c67fa82c46424cc3efbae765d415))
+
 ## [1.2.0](https://github.com/BigBeautifulBoycott/site/compare/v1.1.0...v1.2.0) (2025-11-01)
 
 
