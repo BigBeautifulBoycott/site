@@ -1,0 +1,320 @@
+---
+import Base from "../../layouts/Base.astro";
+import { strapi, unwrap, mediaUrl } from "../../lib/strapi";
+import { renderBlocks } from "../../lib/blocks";
+import { iconForPlatform } from "../../lib/socialIcons";
+
+export async function getStaticPaths() {
+  // fetch only slugs, with pagination safety
+  const pageSize = 100;
+  let page = 1;
+  let paths = [];
+
+  while (true) {
+    const res = await strapi(
+      `/api/companies?publicationState=live&fields=slug&pagination[page]=${page}&pagination[pageSize]=${pageSize}`
+    );
+    const data = unwrap<any[]>(res) ?? [];
+    paths.push(...data.map((c: any) => ({ params: { slug: c.slug } })));
+
+    const meta = (res as any)?.meta?.pagination;
+    if (!meta || page >= (meta.pageCount ?? 1)) break;
+    page++;
+  }
+
+  return paths;
+}
+
+const { slug } = Astro.params;
+
+/* Fetch – now including the "contact" dynamic zone */
+const params = new URLSearchParams();
+params.set("publicationState", "live");
+params.set("filters[slug][$eq]", String(slug ?? ""));
+params.set("fields", "name,slug,about,how_to_boycott,Reasoning");
+params.set("populate", "logo,category,tags,Evaluation,contact");
+params.set("populate[Evaluation][populate]", "reasoning_tags");
+params.set("populate[Evaluation][populate][reasoning_tags][fields]", "name,slug,color");
+params.set("populate[logo][fields]", "url,alternativeText,formats");
+params.set("populate[contact][populate]", "*");
+
+const res = await strapi(`/api/companies?${params.toString()}`);
+const arr = unwrap<any[]>(res) ?? [];
+const company = (Array.isArray(arr) ? arr[0] : null);
+
+if (!company) {
+  return new Response("Company not found", { status: 404 });
+}
+
+/* ---------- Logo ---------- */
+const logoNode = company?.logo?.data?.attributes ?? company?.logo ?? null;
+const logoUrlRaw = logoNode?.url ?? "";
+const logoFormats = logoNode?.formats ?? {};
+const src = logoUrlRaw ? mediaUrl(logoUrlRaw) : "";
+const srcSmall = logoFormats?.thumbnail?.url ? mediaUrl(logoFormats.thumbnail.url) : "";
+const srcMedium = logoFormats?.small?.url ? mediaUrl(logoFormats.small.url) : "";
+const logoAlt = logoNode?.alternativeText ?? `${company.name} logo`;
+
+const srcSet = [srcSmall && `${srcSmall} 156w`, srcMedium && `${srcMedium} 500w`, src && `${src} 779w`]
+  .filter(Boolean).join(", ");
+
+/* ---------- Meta ---------- */
+const category =
+  company?.category?.name ??
+  company?.category?.data?.attributes?.name ??
+  null;
+
+const tags = (company?.tags?.data ?? [])
+  .map((t: any) => t?.attributes?.name ?? t?.name)
+  .filter(Boolean);
+
+/* ---------- Content ---------- */
+const about = company.about;
+const howTo = company.how_to_boycott;
+const reasoning = company.Reasoning;
+
+/* ---------- Evaluation ---------- */
+const evaln = company.Evaluation ?? null;
+const sentiment: "good" | "bad" | undefined =
+  evaln?.sentiment === "good" || evaln?.sentiment === "bad" ? evaln.sentiment : undefined;
+
+const badgeClass =
+  sentiment === "good" ? "badge badge-success normal-case"
+: sentiment === "bad"  ? "badge badge-error normal-case"
+: "";
+
+/* Reasoning Tags — support all Strapi shapes */
+let rawTags: any[] = [];
+if (Array.isArray(evaln?.reasoning_tags)) {
+  rawTags = evaln.reasoning_tags;
+} else if (Array.isArray(evaln?.reasoning_tags?.data)) {
+  rawTags = evaln.reasoning_tags.data.map((x: any) => x?.attributes ?? x);
+}
+const reasonTags = rawTags
+  .map((t: any) => t && { name: t.name, color: t.color })
+  .filter(Boolean);
+
+const evalSummary = evaln?.summary ?? "";
+
+/* text color for colored reasoning tags */
+function textColorFor(bg: string) {
+  if (!bg) return "white";
+  const c = bg.replace("#", "");
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  return ((0.299 * r + 0.587 * g + 0.114 * b) / 255) > 0.6 ? "black" : "white";
+}
+
+/* ---------- Contact (dynamic zone) ---------- */
+const contactItems: any[] = Array.isArray(company.contact) ? company.contact : [];
+
+const websites  = contactItems.filter((c) => c?.__component === "contact.website");
+const socials   = contactItems.filter((c) => c?.__component === "contact.social-profile");
+const emails    = contactItems.filter((c) => c?.__component === "contact.email");
+const phones    = contactItems.filter((c) => c?.__component === "contact.phone");
+const addresses = contactItems.filter((c) => c?.__component === "contact.addressss");
+---
+
+<Base>
+  <article class="prose max-w-none">
+    <!-- Header -->
+    <header class="flex items-start gap-4 mb-6">
+      {src ? (
+        <img
+          src={src}
+          srcset={srcSet}
+          sizes="56px"
+          alt={logoAlt}
+          class="h-14 w-14 object-contain rounded bg-base-200"
+          loading="lazy"
+        />
+      ) : (
+        <div class="h-14 w-14 rounded bg-base-200" />
+      )}
+
+      <div class="flex-1">
+        <h1 class="mb-1">{company.name}</h1>
+        <div class="flex flex-wrap items-center gap-2 text-sm opacity-80">
+          {category && <span>{category}</span>}
+          {badgeClass && <span class={`${badgeClass} uppercase`}>{sentiment}</span>}
+        </div>
+
+        {about && <p class="text-base">{about}</p>}
+
+
+        {(evalSummary || reasonTags.length > 0) && (
+          <div class="mt-2 flex flex-col gap-2">
+            {evalSummary && <p class="m-0 text-sm opacity-90">{evalSummary}</p>}
+
+            {reasonTags.length > 0 && (
+              <div class="flex flex-wrap gap-2">
+                {reasonTags.map((t) => (
+                  <span
+                    class="badge px-2 py-0.5 text-xs"
+                    style={`background:${t.color};color:${textColorFor(t.color)};border:none`}
+                  >
+                    {t.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </header>
+
+
+
+    {reasoning && (
+      <section class="mt-8">
+        <h2>Details & Evidence</h2>
+        <div class="prose max-w-none" set:html={renderBlocks(reasoning)} />
+      </section>
+    )}
+
+    {howTo && (
+      <section class="mt-8">
+        <h2>How to Boycott</h2>
+        <div class="prose max-w-none" set:html={renderBlocks(howTo)} />
+      </section>
+    )}
+
+    <!-- Contact -->
+    {contactItems.length > 0 && (
+      <section class="mt-8">
+        <h2>Contact</h2>
+
+        <div class="flex flex-col gap-6">
+          {/* Websites */}
+          {websites.some((w) => !w.private) && (
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Websites</h3>
+              <ul class="space-y-1">
+                {websites
+                  .filter((w) => !w.private)
+                  .map((w) => {
+                    const label = w.type ?? "Website";
+                    const href = String(w.url || "").startsWith("http")
+                      ? w.url
+                      : `https://${w.url}`;
+                    return (
+                      <li>
+                        <a class="link" href={href} target="_blank" rel="noopener noreferrer">
+                          {label} → {w.url}
+                        </a>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          )}
+
+          {socials.length > 0 && (
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Social</h3>
+              <div class="flex flex-wrap gap-3">
+                {socials.map((s) => {
+                  const iconUrl = iconForPlatform(s.platform); // platform uses your exact enum value
+                  const label   = s.label ?? s.platform;
+                  const href    = String(s.url || "").startsWith("http") ? s.url : `https://${s.url}`;
+                  return (
+                    <a href={href} target="_blank" rel="noopener noreferrer"
+                       class="flex items-center gap-2 px-3 py-2 rounded border hover:bg-base-200">
+                      {iconUrl && <img src={iconUrl} alt={String(s.platform)} class="h-5 w-5 object-contain" loading="lazy" />}
+                      <span>{label}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Email */}
+          {emails.some((e) => !e.private) && (
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Email</h3>
+              <ul class="space-y-1">
+                {emails
+                  .filter((e) => !e.private)
+                  .map((e) => (
+                    <li>
+                      <a class="link" href={`mailto:${e.email}`}>
+                        {(e.type ?? "Email") + ": "} {e.email}
+                      </a>
+                      {e.note && <span class="opacity-70"> — {e.note}</span>}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Phone */}
+          {phones.some((p) => !p.private) && (
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Phone</h3>
+              <ul class="space-y-1">
+                {phones
+                  .filter((p) => !p.private)
+                  .map((p) => (
+                    <li>
+                      <a class="link" href={`tel:${p.phone_number}`}>
+                        {(p.type ?? "Phone") + ": "} {p.phone_number}
+                      </a>
+                      {p.note && <span class="opacity-70"> — {p.note}</span>}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Addresses */}
+          {addresses.some((a) => !a.private) && (
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Addresses</h3>
+              <ul class="space-y-2 not-prose">
+                {addresses
+                  .filter((a) => !a.private)
+                  .map((a) => {
+                    const lines = [
+                      a.address_1,
+                      a.address_2,
+                      [a.city, a.state, a.postal_code].filter(Boolean).join(", "),
+                      a.country,
+                    ].filter(Boolean);
+                    return (
+                      <li class="rounded border p-3">
+                        <div class="font-medium">{a.type ?? "Address"}</div>
+                        <div class="text-sm leading-snug">
+                          {lines.map((ln) => (
+                            <div>{ln}</div>
+                          ))}
+                        </div>
+                        {a.note && <div class="text-sm opacity-70 mt-1">{a.note}</div>}
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    {tags.length > 0 && (
+      <section class="mt-8">
+        <h2>Topics</h2>
+        <div class="flex flex-wrap gap-2">
+          {tags.map((t) => (
+            <span class="badge badge-ghost">{t}</span>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <div class="prose max-w-none">
+      🚫Don’t harass employees or patrons of this company.<br>
+    🚫Don’t spread misinformation.
+    </div>
+  </article>
+</Base>

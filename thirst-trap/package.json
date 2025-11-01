@@ -14,5 +14,8 @@
     "astro": "^5.15.1",
     "daisyui": "^5.3.10",
     "tailwindcss": "^4.1.16"
+  },
+  "devDependencies": {
+    "@astrojs/cloudflare": "^12.6.10"
   }
 }

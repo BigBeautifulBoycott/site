@@ -1,0 +1,20 @@
+---
+import Base from "../../layouts/Base.astro";
+import CompanyCard from "../../components/CompanyCard.astro";
+import { strapi, unwrap } from "../../lib/strapi";
+import type { Company } from "../../types/company";
+
+const res = await strapi(
+  "/api/companies?publicationState=live&pagination[pageSize]=100&sort=name:asc"
+  + "&populate[logo][fields][0]=url"
+  + "&populate[category][fields][0]=name"
+  + "&populate[tags][fields][0]=name"
+);
+const companies = (unwrap<any[]>(res) ?? []) as Company[];
+---
+<Base>
+  <h1 class="text-3xl font-bold mb-4">All Companies</h1>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {companies.map((c) => <CompanyCard company={c} />)}
+  </div>
+</Base>

@@ -1,10 +1,9 @@
 ---
+// src/layouts/Base.astro
 import "../styles/global.css";
 import Seo from "../components/Seo.astro";
 import Header from "../components/Header.astro";
 import FooterComp from "../components/Footer.astro";
-import GTM from "../components/GTM.astro";              // loads head GTM
-import GTMNoscript from "../components/GTMNoscript.astro"; // loads body noscript iframe
 
 import type { Global } from "../types/strapi";
 import type { HeaderType } from "../types/header";
@@ -12,50 +11,59 @@ import type { Footer as FooterType } from "../types/footer";
 
 import { strapi, unwrap, mediaUrl } from "../lib/strapi";
 
-// Fetch Global
-const globalRes = await strapi("/api/global?populate=*");
-const global = (unwrap<Global>(globalRes) ?? {}) as Global;
-if (!global.siteName || !global.siteDescription) {
-  throw new Error("Strapi Global is missing required fields");
-}
-const faviconUrl = mediaUrl(global.favicon?.data?.attributes?.url ?? global.favicon?.url);
-
-// Fetch Header
+let global: Global = {
+  siteName: "Big Beautiful Boycott",
+  siteDescription: "BBB",
+  defaultSeo: {},
+};
 let header: HeaderType | null = null;
+let footer: FooterType = {};
+
+try {
+  const globalRes = await strapi("/api/global?populate=*");
+  const g = unwrap<Global>(globalRes);
+  if (g?.siteName && g?.siteDescription) global = g;
+} catch (_) {}
+
+let faviconUrl = "";
+try {
+  faviconUrl = mediaUrl(
+    global?.favicon?.data?.attributes?.url ?? (global as any)?.favicon?.url
+  );
+} catch (_) {}
+
 try {
   const headerRes = await strapi(
     "/api/header"
-      + "?populate[logo][fields][0]=url"
-      + "&populate[logo][fields][1]=alternativeText"
-      + "&populate[nav][populate]=*"
-      + "&populate[ctas][populate]=*"
+    + "?populate[logo][fields][0]=url"
+    + "&populate[logo][fields][1]=alternativeText"
+    + "&populate[nav][populate]=*"
+    + "&populate[ctas][populate]=*"
   );
   header = unwrap<HeaderType>(headerRes) ?? null;
-} catch (e: any) {
-  if (!String(e?.message || "").includes("404")) throw e;
-}
+} catch (_) {}
 
-// Fetch Footer
-const footerRes = await strapi(
-  "/api/footer"
+// Footer
+try {
+  const footerRes = await strapi(
+    "/api/footer"
     + "?populate[logo][fields][0]=url"
     + "&populate[logo][fields][1]=alternativeText"
     + "&populate[sections][populate]=*"
     + "&populate[bottom_links]=*"
-);
-const footer = (unwrap<FooterType>(footerRes) ?? {}) as FooterType;
+  );
+  footer = (unwrap<FooterType>(footerRes) ?? {}) as FooterType;
+} catch (_) {}
 
-// Default theme; theme.js handles switching pre-paint
 const defaultTheme = "bbb-default";
 ---
-
 <html lang="en" data-theme={defaultTheme}>
   <head>
-    <GTM />  <!-- loads dataLayer + gtm.js -->
-    <script src="/theme.js" is:inline></script>
-
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="/theme.js" is:inline></script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
 
     <Seo
       siteName={global.siteName}
@@ -63,16 +71,15 @@ const defaultTheme = "bbb-default";
       faviconUrl={faviconUrl}
       seo={global.defaultSeo}
     />
+
+    <meta name="theme-color" content="#0e2936" />
+
   </head>
-
   <body class="min-h-dvh bg-base-100 text-base-content">
-    <GTMNoscript />  <!-- loads <noscript> GTM iframe -->
     {header && <Header header={header} />}
-
     <main class="mx-auto max-w-7xl w-full px-4 py-8">
       <slot />
     </main>
-
     <FooterComp footer={footer} />
   </body>
 </html>
