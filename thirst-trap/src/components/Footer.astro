@@ -2,6 +2,8 @@
 import type { Footer } from "../types/footer";
 import type { Link } from "../types/header";
 import "../styles/footer.css";
+import EmailSubscribe from "../components/EmailSubscribe.astro";
+
 
 const { footer } = Astro.props as { footer: Footer };
 
@@ -103,6 +105,8 @@ const contentHtml = blocksToHtml(footer?.content);
         })}
       </div>
     )}
+
+    <EmailSubscribe />
 
     <div class="border-t border-base-300 my-8"></div>
 

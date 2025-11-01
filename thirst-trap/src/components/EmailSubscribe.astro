@@ -1,0 +1,65 @@
+---
+/** Props (optional):
+ *  - endpoint: override endpoint (defaults to "/api/subscribe")
+ */
+const { endpoint = "/api/subscribe" } = Astro.props as { endpoint?: string };
+const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+---
+
+<form id="email-subscribe" class="flex flex-col sm:flex-row gap-2" novalidate>
+  <input name="email" type="email" required placeholder="Your email"
+         class="input input-bordered w-full sm:w-72" />
+  <input name="zip" type="text" inputmode="numeric" placeholder="ZIP (optional)"
+         class="input input-bordered w-full sm:w-32" />
+
+  <div class="cf-turnstile"
+       data-sitekey={TURNSTILE_SITE_KEY}
+       data-callback="onTurnstile"
+       data-size="compact"></div>
+
+  <button type="submit" class="btn btn-primary">Join</button>
+</form>
+
+<p id="email-subscribe-msg" class="text-sm mt-2" aria-live="polite"></p>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script is:inline>
+  const endpoint = {endpoint: `${endpoint}`}.endpoint; // "/api/subscribe" on this domain
+  let turnstileToken = "";
+
+  // @ts-ignore
+  window.onTurnstile = (t) => { turnstileToken = t; };
+
+  const form = document.querySelector("#email-subscribe");
+  const msg  = document.querySelector("#email-subscribe-msg");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
+    const btn = form.querySelector('button[type="submit"]');
+    btn?.setAttribute("disabled", "");
+
+    const data = Object.fromEntries(new FormData(form));
+    data["cf-turnstile-response"] = turnstileToken;
+
+    try {
+      const res  = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.error) throw new Error();
+
+      msg.textContent = "You're in.";
+      form.reset();
+      turnstileToken = "";
+      // @ts-ignore
+      window.turnstile?.reset();
+    } catch {
+      msg.textContent = "Try again.";
+    } finally {
+      btn?.removeAttribute("disabled");
+    }
+  });
+</script>
