@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0](https://github.com/BigBeautifulBoycott/site/compare/v1.1.0...v1.2.0) (2025-11-01)
+
+
+### Features
+
+* auto-page generation ([b9f9d5b](https://github.com/BigBeautifulBoycott/site/commit/b9f9d5b5c847440993c8f6291c5e82a23ea553ad))
+* sorted reason tags ([727eda9](https://github.com/BigBeautifulBoycott/site/commit/727eda9b8e2e96c799c98a8cd3c1e76943d442a4))
+* sorted reason tags ([12e7949](https://github.com/BigBeautifulBoycott/site/commit/12e794939c84f9e88232669ff2f2ffd5483d76f1))
+
 ## [1.1.0](https://github.com/BigBeautifulBoycott/site/compare/v1.0.0...v1.1.0) (2025-11-01)
 
 
