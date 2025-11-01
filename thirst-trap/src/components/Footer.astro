@@ -79,10 +79,15 @@ const contentHtml = blocksToHtml(footer?.content);
 <footer data-theme="bbb-footer" class="site-footer bg-base-200 text-base-content border-t border-base-300 mt-12">
   <div class="mx-auto max-w-7xl px-4 py-10">
     {logoUrl && (
-      <div class="mb-8">
-        <a href="/" class="inline-flex items-center">
+      <div class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <a href="/" class="inline-flex items-center shrink-0">
           <img src={logoUrl} alt={logoAlt} class="h-10 w-auto" />
         </a>
+
+        {/* subscribe inline right of the pig */}
+        <div class="w-full sm:w-auto">
+          <EmailSubscribe />
+        </div>
       </div>
     )}
 
@@ -106,7 +111,6 @@ const contentHtml = blocksToHtml(footer?.content);
       </div>
     )}
 
-    <EmailSubscribe />
 
     <div class="border-t border-base-300 my-8"></div>
 
