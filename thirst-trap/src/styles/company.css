@@ -264,3 +264,105 @@
     background: #111318;
   }
 }
+
+/* Contact list grid */
+.company .contact .contact-list{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:.55rem .7rem;
+}
+
+/* Pill-like links with optional meta (domain / email / phone) */
+.company .contact .contact-link{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.45rem .65rem;border:1px solid var(--border,#e5e7eb);
+  border-radius:.5rem;background:transparent;text-decoration:none;color:inherit;
+  line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background .15s ease,border-color .15s ease;
+}
+.company .contact .contact-link__label{font-weight:600;}
+.company .contact .contact-link__meta{opacity:.75;font-size:.92rem;}
+
+/* External arrow only on website links */
+.company .contact .contact-link--external::after{
+  content:"↗";opacity:.55;font-size:.9em;margin-left:.15rem;
+}
+
+/* Hover/focus */
+.company .contact .contact-link:hover{background:#f7f7f7;}
+.company .contact .contact-link:focus-visible{outline:2px solid #2563eb;outline-offset:2px;}
+
+@media (prefers-color-scheme:dark){
+  .company .contact .contact-link{border-color:#2a2a2a;}
+  .company .contact .contact-link:hover{background:#151820;}
+}
+
+/* Addresses: no boxes */
+.company .contact .contact-list--addresses .address-item{
+  padding:0;border:none;background:transparent;border-radius:0;
+}
+
+/* Contact layout */
+.company .contact h2 { margin-bottom: .25rem; }
+.company .contact .contact-group { display: grid; gap: 1.25rem; }
+.company .contact .contact-subgroup h3 { margin: 0 0 .5rem; }
+
+/* Lists */
+.company .contact .contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .5rem;              /* vertical stack */
+}
+
+/* Websites: always stack (optionally go 2-col at ≥768px if you want) */
+/* .company .contact .contact-list--web { grid-template-columns: 1fr; } */
+
+/* Link pill */
+.company .contact .contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: .5rem;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+  line-height: 1.2;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+/* Label + value */
+.company .contact .contact-label { font-weight: 600; }
+.company .contact .contact-domain { opacity: .8; }
+
+/* External cue on website links only */
+.company .contact .contact-list--web .contact-link::after {
+  content: "↗";
+  opacity: .6;
+  font-size: .9em;
+  margin-left: .15rem;
+}
+
+/* Notes */
+.company .contact .contact-note { margin-left: .35rem; opacity: .75; }
+
+/* Addresses: no box */
+.company .contact .contact-list--addr .contact-address {
+  border: 0; background: transparent; padding: 0; border-radius: 0;
+}
+.company .contact .addr-type { font-weight: 600; margin-bottom: .1rem; }
+.company .contact .addr-lines { font-size: .95rem; line-height: 1.35; }
+.company .contact .addr-note { margin-top: .15rem; opacity: .75; font-size: .9rem; }
+
+/* Hover */
+.company .contact .contact-link:hover { background: #f7f7f7; }
+.company .contact .contact-link:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .company .contact .contact-link { border-color: #2a2a2a; }
+  .company .contact .contact-link:hover { background: #151820; }
+}

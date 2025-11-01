@@ -162,26 +162,29 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
 
     <!-- Contact -->
     {contactItems.length > 0 && (
-      <section class="mt-8 contact">
+      <section class="mt-10 contact">
         <h2>Contact</h2>
 
-        <div class="flex flex-col gap-6">
-          {/* Websites */}
+        <div class="contact-group">
           {websites.some((w) => !w.private) && (
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Websites</h3>
-              <ul class="contact-list">
+            <div class="contact-subgroup">
+              <h3>Websites</h3>
+              <ul class="contact-list contact-list--web">
                 {websites
                   .filter((w) => !w.private)
                   .map((w) => {
                     const label = w.type ?? "Website";
-                    const href = String(w.url || "").startsWith("http")
-                      ? w.url
-                      : `https://${w.url}`;
+                    const raw   = String(w.url || "");
+                    const href  = raw.startsWith("http") ? raw : `https://${raw}`;
+                    let host = raw;
+                    try {
+                      host = new URL(href).hostname.replace(/^www\./, "");
+                    } catch (_) {}
                     return (
                       <li>
-                        <a class="link" href={href} target="_blank" rel="noopener noreferrer">
-                          {label} → {w.url}
+                        <a class="contact-link" href={href} target="_blank" rel="noopener noreferrer">
+                          <span class="contact-label">{label}</span>
+                          <span class="contact-domain">{host}</span>
                         </a>
                       </li>
                     );
@@ -190,49 +193,48 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
             </div>
           )}
 
-          {/* Email */}
-          {emails.some((e) => !e.private) && (
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Email</h3>
-              <ul class="contact-list">
-                {emails
-                  .filter((e) => !e.private)
-                  .map((e) => (
-                    <li>
-                      <a class="link" href={`mailto:${e.email}`}>
-                        {(e.type ?? "Email") + ": "} {e.email}
-                      </a>
-                      {e.note && <span class="opacity-70"> — {e.note}</span>}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Phone */}
           {phones.some((p) => !p.private) && (
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Phone</h3>
+            <div class="contact-subgroup">
+              <h3>Phone</h3>
               <ul class="contact-list">
                 {phones
                   .filter((p) => !p.private)
                   .map((p) => (
                     <li>
-                      <a class="link" href={`tel:${p.phone_number}`}>
-                        {(p.type ?? "Phone") + ": "} {p.phone_number}
+                      <a class="contact-link" href={`tel:${p.phone_number}`}>
+                        <span class="contact-label">{p.type ?? "Main"}</span>
+                        <span class="contact-domain">{p.phone_number}</span>
                       </a>
-                      {p.note && <span class="opacity-70"> — {p.note}</span>}
+                      {p.note && <span class="contact-note">— {p.note}</span>}
                     </li>
                   ))}
               </ul>
             </div>
           )}
 
-          {/* Addresses */}
-          {addresses.some((a) => !a.private) && (
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Addresses</h3>
+          {emails.some((e) => !e.private) && (
+            <div class="contact-subgroup">
+              <h3>Email</h3>
               <ul class="contact-list">
+                {emails
+                  .filter((e) => !e.private)
+                  .map((e) => (
+                    <li>
+                      <a class="contact-link" href={`mailto:${e.email}`}>
+                        <span class="contact-label">{e.type ?? "Email"}</span>
+                        <span class="contact-domain">{e.email}</span>
+                      </a>
+                      {e.note && <span class="contact-note">— {e.note}</span>}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+
+          {addresses.some((a) => !a.private) && (
+            <div class="contact-subgroup">
+              <h3>Addresses</h3>
+              <ul class="contact-list contact-list--addr">
                 {addresses
                   .filter((a) => !a.private)
                   .map((a) => {
@@ -243,14 +245,12 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
                       a.country,
                     ].filter(Boolean);
                     return (
-                      <li class="rounded border p-3">
-                        <div class="font-medium">{a.type ?? "Address"}</div>
-                        <div class="text-sm leading-snug">
-                          {lines.map((ln) => (
-                            <div>{ln}</div>
-                          ))}
+                      <li class="contact-address">
+                        <div class="addr-type">{a.type ?? "Address"}</div>
+                        <div class="addr-lines">
+                          {lines.map((ln) => (<div>{ln}</div>))}
                         </div>
-                        {a.note && <div class="text-sm opacity-70 mt-1">{a.note}</div>}
+                        {a.note && <div class="addr-note">{a.note}</div>}
                       </li>
                     );
                   })}
