@@ -1,0 +1,57 @@
+---
+import Base from "../layouts/Base.astro";
+import DynamicZone from "../components/DynamicZone.astro";
+import { strapi, unwrap } from "../lib/strapi";
+import "../styles/pages.css";
+
+/** Pre-render all page slugs */
+export async function getStaticPaths() {
+  const res = await strapi(
+    "/api/pages"
+    + "?publicationState=live"
+    + "&fields=slug"
+    + "&pagination[pageSize]=500"
+  );
+  const items = (unwrap<any[]>(res) ?? []);
+  return items.map((p: any) => ({ params: { slug: p.slug } }));
+}
+
+/** Page load */
+const { slug } = Astro.params;
+
+const res = await strapi(
+  "/api/pages"
+  + `?filters[slug][$eq]=${encodeURIComponent(slug)}`
+  + "&publicationState=live"
+  // media at root
+  + "&populate[headerImage][fields]=url,alternativeText,caption,width,height,formats"
+  // component scalar fields
+  + "&populate[SEO][fields]=metaTitle,metaDescription,canonicalUrl,structuredData"
+  // component media (must be nested)
+  + "&populate[SEO][populate][shareImage][fields]=url,alternativeText,caption,width,height,formats"
+  // dynamic zone is fine to expand
+  + "&populate[Content][populate]=*"
+);
+
+const page = (unwrap<any[]>(res) ?? [])[0];
+if (!page) throw new Error("Page not found");
+
+const { name, headerImage, SEO, Content } = page;
+---
+
+<Base seo={SEO}>
+  {headerImage?.url && (
+    <div class="mb-6">
+      <img
+        src={headerImage.url}
+        alt={headerImage.alternativeText || name}
+        class="w-full max-h-[360px] object-cover rounded-lg"
+        loading="lazy"
+      />
+    </div>
+  )}
+
+  <h1 class="text-3xl font-bold mb-4">{name}</h1>
+
+  <DynamicZone blocks={Content ?? []} />
+</Base>
