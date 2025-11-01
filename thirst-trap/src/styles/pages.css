@@ -1,0 +1,75 @@
+/* Rich text */
+.dz-rich { margin: 1rem 0 1.25rem; }
+.dz-rich__content { line-height: 1.7; }
+.dz-rich__content p { margin: .75rem 0; }
+.dz-rich__content h1,.dz-rich__content h2,.dz-rich__content h3 { margin: 1.1rem 0 .4rem; line-height: 1.25; }
+.dz-rich__content ul,.dz-rich__content ol { margin:.75rem 0; padding-left: 1.25rem; }
+.dz-rich__content li { margin: .25rem 0; }
+
+/* Quote */
+.dz-quote { margin: 1.25rem 0; padding: 1rem 1.25rem; border:1px solid #eee; border-radius:.75rem; background:#fafafa; }
+.dz-quote__title { font-weight: 700; margin-bottom: .25rem; }
+.dz-quote__body { color:#333; }
+
+/* Media */
+.dz-media { margin: 1rem 0 1.25rem; }
+.dz-media__img,.dz-media__video { width:100%; height:auto; border-radius:.75rem; }
+.dz-media__video { max-height:70vh; }
+
+/* Slider */
+.dz-slider { position:relative; margin: 1.25rem 0; }
+.dz-slider__track {
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(70%,1fr);
+  gap:.75rem; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+  padding-bottom:.25rem;
+}
+@media (min-width:768px){ .dz-slider__track{ grid-auto-columns:minmax(45%,1fr);} }
+.dz-slider__item { scroll-snap-align:start; border:1px solid #eee; border-radius:.75rem; overflow:hidden; background:#fff; }
+.dz-slider__img,.dz-slider__video { width:100%; height:auto; display:block; }
+.dz-slider__nav {
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:2rem; height:2rem; border-radius:999px; border:0; color:#fff;
+  background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center;
+}
+.dz-slider__nav--prev { left:.25rem; }
+.dz-slider__nav--next { right:.25rem; }
+
+/* Fallback */
+.dz-unknown { font-size:.85rem; opacity:.6; margin:1rem 0; }
+
+
+/* --- Clean Web-Style Quote --- */
+
+.dz-quote {
+  margin: 2.5rem 0;
+  text-align: center;
+  padding: 0 1.25rem;
+}
+
+.dz-quote__text {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1.35;
+  font-weight: 400;
+  font-style: italic;
+  margin: 0;
+  color: var(--quote-text, inherit);
+  max-width: 70ch;
+  margin-inline: auto;
+}
+
+/* Attribution bottom-right */
+.dz-quote__attribution {
+  margin-top: 1rem;
+  font-size: 1rem;
+  opacity: 0.75;
+  text-align: right;
+  width: 100%;
+  max-width: 70ch;
+  margin-inline: auto;
+}
+
+/* Optional: slightly fade quotes on dark mode */
+@media (prefers-color-scheme: dark) {
+  .dz-quote__text { opacity: .95; }
+  .dz-quote__attribution { opacity: .8; }
+}

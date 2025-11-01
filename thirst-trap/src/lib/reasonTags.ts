@@ -7,5 +7,6 @@ export const severityOrder: Record<string, number> = {
 };
 
 export function severityRank(value?: string): number {
-  return severityOrder[value || "medium"] || 99;
+  if (!value) return 99;
+  return severityOrder[value.toLowerCase()] ?? 99;
 }

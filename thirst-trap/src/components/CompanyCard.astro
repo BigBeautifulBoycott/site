@@ -1,5 +1,6 @@
 ---
 import type { Company } from "../types/company";
+import { severityRank } from "../lib/reasonTags";
 
 const { company } = Astro.props as { company: Company };
 
@@ -32,25 +33,31 @@ const tags: string[] = ((company as any)?.tags?.data ?? [])
   .filter(Boolean);
 
 /* -------- Evaluation + reasoning tags -------- */
-const evaln: any = (company as any)?.Evaluation ?? {};
-const reasoningSummary: string =
-  evaln?.summary ||
-  (company as any)?.reason?.data?.attributes?.description ||
-  "";
+  const evaln: any = (company as any)?.Evaluation ?? {};
+  const reasoningSummary: string =
+    evaln?.summary ||
+    (company as any)?.reason?.data?.attributes?.description ||
+    "";
 
-let reasoningTags: { name: string; color?: string }[] = [];
-const rt = evaln?.reasoning_tags;
-if (Array.isArray(rt?.data)) {
-  reasoningTags = rt.data
-    .map((x: any) => x?.attributes)
-    .filter((a: any) => a?.name)
-    .map((a: any) => ({ name: a.name, color: a.color }));
-} else if (Array.isArray(rt)) {
-  reasoningTags = rt
-    .map((t: any) => t?.attributes ?? t)
-    .filter((x: any) => x?.name)
-    .map((x: any) => ({ name: x.name, color: x.color }));
-}
+  let reasoningTags: { name: string; color?: string; priority?: string }[] = [];
+  const rt = evaln?.reasoning_tags;
+
+  if (Array.isArray(rt?.data)) {
+    reasoningTags = rt.data
+      .map((x: any) => x?.attributes)
+      .filter((a: any) => a?.name)
+      .map((a: any) => ({ name: a.name, color: a.color, priority: a.priority }));
+  } else if (Array.isArray(rt)) {
+    reasoningTags = rt
+      .map((t: any) => t?.attributes ?? t)
+      .filter((x: any) => x?.name)
+      .map((x: any) => ({ name: x.name, color: x.color, priority: x.priority }));
+  }
+
+  /* sort by priority (critical→info), then name */
+  reasoningTags.sort(
+    (a, b) => severityRank(a.priority) - severityRank(b.priority) || a.name.localeCompare(b.name)
+  );
 
 /* -------- Utils -------- */
 function clamp(s = "", n = 160) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }

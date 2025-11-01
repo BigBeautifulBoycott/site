@@ -1,0 +1,108 @@
+---
+import { marked } from "marked"; // npm i marked
+
+/** Renders an array of Strapi dynamic zone blocks (no styles here) */
+const { blocks = [] } = Astro.props as { blocks: any[] };
+
+/* -------- media helpers (work with v4/v5 shapes) -------- */
+function mediaFrom(x: any) {
+  if (!x) return null;
+  if (x.url) return x;                            // normalized already
+  if (x.data?.attributes?.url) return x.data.attributes;   // {data:{attributes}}
+  if (x.attributes?.url) return x.attributes;     // {attributes}
+  return null;
+}
+function mediasFrom(x: any) {
+  const arr = x?.data ? x.data : x;
+  return Array.isArray(arr) ? arr.map(mediaFrom).filter(Boolean) : [];
+}
+function is(kind: string, m?: any) {
+  const mime = m?.mime || m?.mimeType || "";
+  return mime.startsWith(kind + "/");
+}
+---
+
+{blocks.map((b) => {
+  const type = b?.__component;
+  if (!type) return null;
+
+  /* Rich text: treat as markdown, preserve line breaks */
+  if (type === "shared.rich-text") {
+    const html = marked.parse(b?.body || "", { breaks: true });
+    return (
+      <section class="dz dz-rich">
+        <div class="dz-rich__content" set:html={html} />
+      </section>
+    );
+  }
+
+  if (type === "shared.quote") {
+      return (
+        <figure class="dz dz-quote">
+          {b?.body && <blockquote class="dz-quote__body">{b.body}</blockquote>}
+          {b?.title && <figcaption class="dz-quote__author">— {b.title}</figcaption>}
+        </figure>
+      );
+    }
+
+  if (type === "shared.media") {
+    const m = mediaFrom(b?.file);
+    if (!m?.url) return null;
+    const alt = m.alternativeText || "";
+    const cap = m.caption || "";
+
+    return (
+      <figure class="dz dz-media">
+        {is("image", m) && <img class="dz-media__img" src={m.url} alt={alt} loading="lazy" />}
+        {is("video", m) && <video class="dz-media__video" src={m.url} controls preload="metadata" />}
+        {is("audio", m) && <audio class="dz-media__audio" src={m.url} controls preload="metadata" />}
+        {!is("image", m) && !is("video", m) && !is("audio", m) && (
+          <a class="dz-media__file" href={m.url} target="_blank" rel="noopener">Open file</a>
+        )}
+        {cap && <figcaption class="dz-media__cap">{cap}</figcaption>}
+      </figure>
+    );
+  }
+
+  if (type === "shared.slider") {
+    const files = mediasFrom(b?.files);
+    if (!files.length) return null;
+
+    return (
+      <section class="dz dz-slider" data-slider>
+        <button class="dz-slider__nav dz-slider__nav--prev" type="button" aria-label="Previous">‹</button>
+        <div class="dz-slider__track" data-track>
+          {files.map((m) => {
+            const alt = m?.alternativeText || "";
+            const cap = m?.caption || "";
+            return (
+              <div class="dz-slider__item">
+                {is("image", m) && <img class="dz-slider__img" src={m.url} alt={alt} loading="lazy" />}
+                {is("video", m) && <video class="dz-slider__video" src={m.url} controls preload="metadata" />}
+                {!is("image", m) && !is("video", m) && (
+                  <a class="dz-slider__file" href={m.url} target="_blank" rel="noopener">Open</a>
+                )}
+                {cap && <div class="dz-slide__cap">{cap}</div>}
+              </div>
+            );
+          })}
+        </div>
+        <button class="dz-slider__nav dz-slider__nav--next" type="button" aria-label="Next">›</button>
+      </section>
+    );
+  }
+
+  return <pre class="dz dz-unknown">Unsupported block: {type}</pre>;
+})}
+
+<script>
+  // lightweight nav for slider (no CSS here)
+  document.querySelectorAll('[data-slider]').forEach((root) => {
+    const track = root.querySelector('[data-track]');
+    const prev = root.querySelector('.dz-slider__nav--prev');
+    const next = root.querySelector('.dz-slider__nav--next');
+    const step = () => track.clientWidth * 0.9;
+    prev?.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next?.addEventListener('click', () => track.scrollBy({ left:  step(), behavior: 'smooth' }));
+  });
+</script>
