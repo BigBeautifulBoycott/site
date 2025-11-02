@@ -1,5 +1,8 @@
 ---
+// src/components/Header.astro
 import type { HeaderType, NavItem, Link, Button } from "../types/header";
+import { Image } from "astro:assets";
+import { mediaUrl } from "../lib/strapi";
 import "../styles/header.css";
 
 const { header } = Astro.props as { header: HeaderType };
@@ -7,9 +10,15 @@ const { header } = Astro.props as { header: HeaderType };
 function sizeClass(size?: Button["size"]) {
   return size === "small" ? "btn-sm" : size === "large" ? "btn-lg" : "";
 }
+
+/** Ghost buttons should look like buttons (outlined) and keep hover feeling */
 function variantClass(variant: Button["variant"]) {
-  return variant === "ghost" ? "btn-ghost" : "btn-primary";
+  if (variant === "ghost") {
+    return "btn-ghost border border-primary/70 text-primary hover:bg-primary/10 hover:border-primary";
+  }
+  return "btn-primary";
 }
+
 function linkAttrs(l?: Link) {
   const attrs: Record<string, string> = {};
   const t = (l?.tracking ?? {}) as Record<string, unknown>;
@@ -19,50 +28,84 @@ function linkAttrs(l?: Link) {
   }
   if ((t as any)?.id) attrs.id = String((t as any).id);
   if (l?.ariaLabel) attrs["aria-label"] = l.ariaLabel;
+  if (l?.url?.startsWith("http")) { attrs.target = "_blank"; attrs.rel = "noopener"; }
   return attrs;
 }
 
 const navItems = header?.nav ?? [];
 const ctas = header?.ctas ?? [];
+const primaryCta = (ctas?.[0] as Button) || null;
+const moreCtas = (ctas || []).slice(1);
+
 const logoHref = header?.logoHref ?? "/";
-const logoUrl = header?.logo?.url;
-const logoAlt = header?.logo?.alternativeText ?? "";
+const logoRaw = header?.logo?.url;
+const logoSrc = logoRaw ? (mediaUrl(logoRaw) || logoRaw) : "";
+const logoAlt = header?.logo?.alternativeText ?? "Big Beautiful Boycott";
 ---
-<nav data-theme="bbb-header" class="site-header bg-base-100">
+<nav data-theme="bbb-header" class="site-header sticky top-0 z-50 bg-base-100">
   <div class="mx-auto max-w-7xl w-full px-4">
     <div class="navbar h-16 border-b border-base-200">
-      <!-- Left: logo -->
-      <div class="navbar-start">
+      <!-- Left: logo + primary CTA (visible on mobile too) -->
+      <div class="navbar-start items-center gap-3 sm:gap-4">
         <a href={logoHref} class="flex items-center gap-2" aria-label="Home">
-          {logoUrl && <img src={logoUrl} alt={logoAlt} class="h-10 md:h-12 w-auto object-contain" />}
+          {logoSrc
+            ? <Image
+                src={logoSrc}
+                alt={logoAlt}
+                width={160}
+                height={44}
+                widths={[120,160,200]}
+                sizes="(max-width: 768px) 120px, 160px"
+                format="webp"
+                fallbackFormat="png"
+                quality={90}
+                loading="eager"
+                decoding="sync"
+                class="h-11 w-auto object-contain"
+              />
+            : <img src="/logo.svg" alt={logoAlt} class="h-11 w-auto object-contain" />
+          }
         </a>
-      </div>
 
-      <!-- Center: CTAs (buttons) -->
-      <div class="navbar-center hidden lg:flex gap-2">
-        {ctas.map((b: Button) => (
+        {primaryCta && (
           <a
-            {...linkAttrs(b.link)}
-            href={b.link.url}
-            class={`btn ${variantClass(b.variant)} ${sizeClass(b.size)}`}
+            {...linkAttrs(primaryCta.link)}
+            href={primaryCta.link.url}
+            class={`btn ${variantClass(primaryCta.variant)} ${sizeClass(primaryCta.size)} inline-flex shrink-0 btn-sm md:btn-md`}
           >
-            {b.link.label}
+            {primaryCta.link.label}
           </a>
-        ))}
+        )}
+
+        {moreCtas.length ? (
+          <div class="hidden lg:flex gap-2">
+            {moreCtas.map((b: Button) => (
+              <a
+                {...linkAttrs(b.link)}
+                href={b.link.url}
+                class={`btn ${variantClass(b.variant)} ${sizeClass(b.size)}`}
+              >
+                {b.link.label}
+              </a>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <!-- Right: desktop nav + mobile hamburger -->
       <div class="navbar-end gap-2">
         <!-- Desktop nav -->
         {navItems.length ? (
-          <ul class="menu menu-horizontal gap-6 hidden lg:flex">
+          <ul class="menu menu-horizontal gap-4 hidden lg:flex">
             {navItems.map((item: NavItem) =>
               item.children?.length ? (
                 <li class="relative">
                   <details>
-                    <summary {...linkAttrs(item.link)} class="cursor-pointer">{item.link.label}</summary>
-                    <!-- Solid, on-theme dropdown panel -->
-                    <ul class="mt-2 p-2 z-30 bg-base-100 border border-base-200 rounded-box shadow-2xl w-64">
+                    <summary {...linkAttrs(item.link)} class="cursor-pointer select-none">
+                      {item.link.label}
+                    </summary>
+                    <!-- Solid, positioned dropdown attached to trigger -->
+                    <ul class="menu nav-dropdown">
                       {item.children.map((c: Link) => (
                         <li><a {...linkAttrs(c)} href={c.url}>{c.label}</a></li>
                       ))}
@@ -76,14 +119,11 @@ const logoAlt = header?.logo?.alternativeText ?? "";
           </ul>
         ) : null}
 
-        <!-- Mobile hamburger -->
+        <!-- Mobile hamburger + menu -->
         {navItems.length ? (
           <div class="dropdown dropdown-end lg:hidden">
-            <button tabindex="0" class="btn btn-ghost" aria-label="Open menu">☰</button>
-            <ul
-              tabindex="0"
-              class="menu dropdown-content mt-2 p-2 shadow-2xl bg-base-100 rounded-box w-64 border border-base-200 z-30"
-            >
+            <button tabindex="0" class="btn btn-ghost" aria-label="Open menu" aria-haspopup="true" aria-expanded="false">☰</button>
+            <ul tabindex="0" class="menu dropdown-content mobile-dropdown">
               {navItems.map((item: NavItem) => (
                 <>
                   <li><a {...linkAttrs(item.link)} href={item.link.url}>{item.link.label}</a></li>
@@ -106,4 +146,52 @@ const logoAlt = header?.logo?.alternativeText ?? "";
       </div>
     </div>
   </div>
+
+  <!-- Scrim for mobile menu -->
+  <div id="mobile-scrim" class="mobile-scrim lg:hidden" aria-hidden="true"></div>
+
+  <!-- Behavior: one desktop menu at a time; mobile scrim -->
+  <script is:inline>
+    const header = document.querySelector('nav.site-header');
+    const details = header ? header.querySelectorAll('details') : [];
+
+    // Only one desktop dropdown open at once
+    details.forEach(d => {
+      const summary = d.querySelector('summary');
+      summary?.addEventListener('click', () => {
+        details.forEach(other => { if (other !== d) other.removeAttribute('open'); });
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!header?.contains(e.target)) details.forEach(d => d.removeAttribute('open'));
+    }, { passive: true });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') details.forEach(d => d.removeAttribute('open'));
+    });
+
+    // Mobile dropdown scrim toggle
+    const mobileDropdown = header?.querySelector('.dropdown.lg\\:hidden');
+    const mobileBtn = mobileDropdown?.querySelector('button');
+    const scrim = document.getElementById('mobile-scrim');
+
+    function closeMobile() {
+      mobileDropdown?.classList.remove('open');
+      scrim?.classList.remove('show');
+    }
+
+    mobileBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !mobileDropdown?.classList.contains('open');
+      mobileDropdown?.classList.toggle('open', willOpen);
+      scrim?.classList.toggle('show', willOpen);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!mobileDropdown?.contains(e.target)) closeMobile();
+    }, { passive: true });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMobile();
+    });
+  </script>
 </nav>
