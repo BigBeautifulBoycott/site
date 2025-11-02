@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/BigBeautifulBoycott/site/compare/v1.3.2...v1.4.0) (2025-11-02)
+
+
+### Features
+
+* contact form ([6a0e753](https://github.com/BigBeautifulBoycott/site/commit/6a0e75370b81722e84943435996e4f26cbcc7448))
+
+
+### Bug Fixes
+
+* stuff ([0afd431](https://github.com/BigBeautifulBoycott/site/commit/0afd431a96e48e542f301b8d3a9a4dfff75f4890))
+
 ## [1.3.2](https://github.com/BigBeautifulBoycott/site/compare/v1.3.1...v1.3.2) (2025-11-01)
 
 
