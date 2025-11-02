@@ -1,0 +1,117 @@
+---
+import Base from "../layouts/Base.astro";
+
+const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+// Default form “Type”; override by visiting /contact?type=Media%2FPress
+const urlType = new URL(Astro.request.url).searchParams.get("type");
+const DEFAULT_TYPE = urlType || "General";
+const TYPES = ["General","Media/Press","Partnership","Volunteer","Legal","Bug/Report","Other"];
+---
+
+<Base>
+  <section class="mx-auto max-w-3xl px-4 py-10">
+    <header class="mb-6">
+      <h1 class="text-4xl font-bold">Contact Us</h1>
+      <p class="mt-2 opacity-80">
+        Have a question, press inquiry, or want to collaborate? Send a note and we’ll get back to you.
+      </p>
+    </header>
+
+    <!-- hidden sink blocks navigation if JS fails -->
+    <iframe name="contact-sink" style="display:none;"></iframe>
+
+    <form id="contact-form"
+          action="/api/contact"
+          method="POST"
+          target="contact-sink"
+          class="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm grid gap-4"
+          novalidate>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input name="name" type="text" placeholder="Your name"
+               class="input input-bordered w-full" />
+        <input name="email" type="email" required autocomplete="email"
+               placeholder="Your email*" class="input input-bordered w-full" />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input name="organization" type="text" placeholder="Organization (optional)"
+               class="input input-bordered w-full" />
+        <select name="type" required class="select select-bordered w-full">
+          {TYPES.map(t => <option value={t} selected={t===DEFAULT_TYPE}>{t}</option>)}
+        </select>
+      </div>
+
+      <input name="subject" type="text" placeholder="Subject (optional)"
+             class="input input-bordered w-full" />
+
+      <textarea name="message" required rows="6"
+                placeholder="Your message*"
+                class="textarea textarea-bordered w-full"></textarea>
+
+      <!-- Turnstile -->
+      <div class="cf-turnstile"
+           data-sitekey={TURNSTILE_SITE_KEY}
+           data-callback="onTurnstile"
+           data-size="normal"></div>
+
+      <div class="flex items-center gap-3">
+        <button type="submit" class="btn btn-primary">Send</button>
+        <span id="contact-msg" class="text-sm" aria-live="polite"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <script is:inline>
+    function parseUTM() {
+      const p = new URLSearchParams(location.search);
+      const out = {};
+      for (const k of ["utm_source","utm_medium","utm_campaign","utm_term","utm_content"]) {
+        const v = p.get(k); if (v) out[k] = v;
+      }
+      return out;
+    }
+
+    let turnstileToken = "";
+    // @ts-ignore (set by Turnstile script)
+    window.onTurnstile = (t) => { turnstileToken = t; };
+
+    const form = document.querySelector("#contact-form");
+    const msg  = document.querySelector("#contact-msg");
+
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+      const btn = form.querySelector('button[type="submit"]');
+      btn?.setAttribute("disabled","");
+
+      const payload = Object.fromEntries(new FormData(form));
+      payload["cf-turnstile-response"] = turnstileToken;
+      payload["referrer"] = document.referrer || "";
+      payload["utm"] = parseUTM();
+
+      try {
+        const res  = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "same-origin",
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok || body.error) throw 0;
+
+        msg.textContent = "Thanks — we got your message.";
+        form.reset();
+        turnstileToken = "";
+        // @ts-ignore
+        window.turnstile?.reset?.();
+      } catch {
+        msg.textContent = "Could not send. Please try again.";
+      } finally {
+        btn?.removeAttribute("disabled");
+      }
+    });
+  </script>
+</Base>
