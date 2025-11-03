@@ -71,7 +71,13 @@ function textColorFor(bg?: string) {
 ---
 
 <article class="relative rounded-xl border border-base-300 bg-base-100 shadow-sm transition hover:shadow-md">
-  <a href={`/company/${company.slug}`} class="block p-4">
+ <a
+   href={`/company/${company.slug}`}
+   class="block p-4"
+   data-gtm="company_open"
+   data-company-slug={company.slug}
+   data-company-name={company.name}
+ >
     <!-- Header: bigger logo; name + category stacked -->
     <div class="flex items-start gap-3">
       {logoUrl

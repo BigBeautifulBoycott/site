@@ -153,18 +153,25 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
 
   <!-- Tiny filter/sort (framework-free) -->
   <script is:inline>
-    const $ = (s) => document.querySelector(s);
+    // ---------- tiny utils ----------
+    const $  = (s) => document.querySelector(s);
     const $$ = (s) => Array.from(document.querySelectorAll(s));
+    const dl = (event, params = {}) => {
+      (window.dataLayer = window.dataLayer || []).push({ event, ...params });
+    };
 
-    const iq = $("#q");
-    const ic = $("#cat");
-    const isort = $("#sort");
+    // ---------- refs ----------
+    const iq = $("#q");         // search input
+    const ic = $("#cat");       // category select
+    const isort = $("#sort");   // sort select
     const ibar = $("#filters-surface");
     const btnClear = $("#clear");
     const badgeCount = $("#count");
     const grid = $("#grid");
 
-    function sortCards(mode) {
+    // ---------- sort ----------
+    function sortCards(mode = (isort?.value || "name_asc")) {
+      if (!grid) return;
       const cards = Array.from(grid.children);
       cards.sort((a, b) => {
         const an = a.dataset.name || "";
@@ -174,59 +181,101 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
         const as = a.dataset.sentiment || "";
         const bs = b.dataset.sentiment || "";
         switch (mode) {
-          case "cat_asc":        return ac.localeCompare(bc) || an.localeCompare(bn);
+          case "cat_asc": {
+            const byCat = ac.localeCompare(bc);
+            return byCat || an.localeCompare(bn);
+          }
           case "sent_bad_first": {
             const rank = (s) => (s === "bad" ? 0 : s === "good" ? 1 : 2);
-            return rank(as) - rank(bs) || an.localeCompare(bn);
+            const bySent = rank(as) - rank(bs);
+            return bySent || an.localeCompare(bn);
           }
           case "name_asc":
-          default:               return an.localeCompare(bn);
+          default:
+            return an.localeCompare(bn);
         }
       });
       cards.forEach((c) => grid.appendChild(c));
     }
 
+    // ---------- filters/search + analytics ----------
     function applyFilters() {
-      const q = (iq.value || "").trim().toLowerCase();
-      const cat = (ic.value || "").toLowerCase();
+      const q = (iq?.value || "").trim().toLowerCase();
+      const cat = (ic?.value || "").toLowerCase();
       let visible = 0;
+
       for (const el of $$(".card-wrap")) {
-        const name = el.dataset.name || "";
-        const category = el.dataset.category || "";
-        const tags = el.dataset.tags || "";
+        const name = (el.dataset.name || "").toLowerCase();
+        const category = (el.dataset.category || "").toLowerCase();
+        const tags = (el.dataset.tags || "").toLowerCase();
+
         const matchesQ = !q || name.includes(q) || category.includes(q) || tags.includes(q);
         const matchesCat = !cat || category === cat;
         const show = matchesQ && matchesCat;
+
         el.classList.toggle("hidden", !show);
         if (show) visible++;
       }
-      // Update badge
+
+      // UI: count badge
       if (badgeCount) {
         badgeCount.textContent = `${visible} result${visible === 1 ? "" : "s"}`;
       }
-    }
 
-    // Sticky elevation when scrolling
-    function updateBarShadow() {
-      if (window.scrollY > 8) {
-        ibar.classList.add("shadow-md");
-      } else {
-        ibar.classList.remove("shadow-md");
+      // Analytics: fire both filter + (if present) search events
+      dl("filter_apply", {
+        category: ic?.value || "(all)",
+        sort: isort?.value || "(default)",
+        total_visible: visible,
+      });
+
+      if (q) {
+        dl("site_search", {
+          search_term: q,
+          results_count: visible,
+        });
       }
     }
 
-    let t = 0;
-    const debounced = (fn) => () => { clearTimeout(t); t = setTimeout(fn, 120); };
+    // ---------- sticky bar shadow ----------
+    function updateBarShadow() {
+      if (!ibar) return;
+      if (window.scrollY > 8) ibar.classList.add("shadow-md");
+      else ibar.classList.remove("shadow-md");
+    }
 
-    iq.addEventListener("input", debounced(applyFilters));
-    ic.addEventListener("change", applyFilters);
-    isort.addEventListener("change", () => sortCards(isort.value));
-    btnClear.addEventListener("click", () => { iq.value = ""; ic.value = ""; applyFilters(); });
+    // ---------- debounce helper ----------
+    let t = 0;
+    const debounced = (fn, ms = 150) => () => {
+      clearTimeout(t);
+      t = setTimeout(fn, ms);
+    };
+
+    // ---------- listeners ----------
+    if (iq) iq.addEventListener("input", debounced(applyFilters));
+    if (ic) ic.addEventListener("change", applyFilters);
+    if (isort) isort.addEventListener("change", () => {
+      sortCards(isort.value);
+      // Re-emit filter_apply with updated sort context + current visible count
+      // (applyFilters also emits, but keep this snappy when sort alone changes)
+      const visibleNow = $$(".card-wrap:not(.hidden)").length;
+      dl("filter_apply", {
+        category: ic?.value || "(all)",
+        sort: isort?.value || "(default)",
+        total_visible: visibleNow,
+      });
+    });
+    if (btnClear) btnClear.addEventListener("click", () => {
+      if (iq) iq.value = "";
+      if (ic) ic.value = "";
+      applyFilters();
+    });
 
     window.addEventListener("scroll", updateBarShadow, { passive: true });
 
-    applyFilters();
-    sortCards(isort.value);
+    // ---------- initial paint ----------
+    applyFilters();                 // filters + analytics for initial state
+    sortCards(isort?.value);        // sort once after initial filter
     updateBarShadow();
   </script>
 

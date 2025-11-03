@@ -131,9 +131,17 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
             const label   = s.label ?? s.platform;
             const href    = String(s.url || "").startsWith("http") ? s.url : `https://${s.url}`;
             return (
-              <a href={href} target="_blank" rel="noopener noreferrer"
-                 class="company-social-item">
-                {iconUrl && <img src={iconUrl} alt={String(s.platform)} loading="lazy" />}
+              <a href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                 class="company-social-item"
+                 data-gtm="company_outbound"
+                 data-dest="website"
+                 data-company-slug={company.slug}
+                 data-company-name={company.name}
+                 >
+                {iconUrl && <img src={iconUrl}
+                alt={String(s.platform)} loading="lazy" />}
                 <span>{label}</span>
               </a>
             );
@@ -143,7 +151,7 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
     )}
 
     {reasoning && (
-      <section class="mt-8">
+      <section class="mt-8" id="evidence">
         <h2>Evidence & Context</h2>
         <div class="prose max-w-none" set:html={renderBlocks(reasoning)} />
       </section>
@@ -182,7 +190,16 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
                     } catch (_) {}
                     return (
                       <li>
-                        <a class="contact-link" href={href} target="_blank" rel="noopener noreferrer">
+                        <a
+                          class="contact-link"
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-gtm="company_outbound"
+                          data-dest="website"
+                          data-company-slug={company.slug}
+                          data-company-name={company.name}
+                          >
                           <span class="contact-label">{label}</span>
                           <span class="contact-domain">{host}</span>
                         </a>

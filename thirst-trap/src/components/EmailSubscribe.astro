@@ -37,6 +37,10 @@ const ACTION = "/api/subscribe";
   const box  = document.querySelector("#ts-box");
   let widgetId = null;
 
+  const dl = (event, params = {}) => {
+    (window.dataLayer = window.dataLayer || []).push({ event, ...params });
+  };
+
   // Ensure we can fetch a token on demand
   window.addEventListener("load", () => {
     // @ts-ignore
@@ -49,11 +53,16 @@ const ACTION = "/api/subscribe";
     const btn = form.querySelector('button[type="submit"]');
     btn?.setAttribute("disabled", "");
 
+    // Emit 'submit' immediately
+    const emailVal = (form.querySelector('input[name="email"]')?.value || "").trim();
+    dl("subscribe_submit", { email_present: Boolean(emailVal) ? "yes" : "no" });
+
     // Always get a token. If empty → block submit.
     // @ts-ignore
     const token = window.turnstile?.getResponse?.(widgetId);
     if (!token) {
       msg.textContent = "Please complete the check.";
+      dl("subscribe_error", { error: "missing_turnstile_token" });
       btn?.removeAttribute("disabled");
       return;
     }
@@ -71,11 +80,15 @@ const ACTION = "/api/subscribe";
       if (!res.ok || body.error) throw body;
 
       msg.textContent = "You're in.";
+      dl("subscribe_success", { status: "ok" });
       form.reset();
       // @ts-ignore
       window.turnstile?.reset?.(widgetId);
     } catch (err) {
       msg.textContent = "Try again.";
+      dl("subscribe_error", {
+        error: (err && (err.error || err.message)) ? String(err.error || err.message) : "request_failed"
+      });
     } finally {
       btn?.removeAttribute("disabled");
     }
