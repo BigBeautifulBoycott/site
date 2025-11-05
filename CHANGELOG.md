@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/BigBeautifulBoycott/site/compare/v1.4.0...v1.5.0) (2025-11-03)
+
+
+### Features
+
+* analytics upgrades ([a9e0eeb](https://github.com/BigBeautifulBoycott/site/commit/a9e0eebd130bd5de742c72cd3e49a314a16f5afc))
+
 ## [1.4.0](https://github.com/BigBeautifulBoycott/site/compare/v1.3.2...v1.4.0) (2025-11-02)
 
 
