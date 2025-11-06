@@ -5,92 +5,86 @@ const ACTION = "/api/subscribe";
 
 <iframe name="email-subscribe-sink" style="display:none;"></iframe>
 
-<form
-  id="email-subscribe"
-  method="POST"
-  action={ACTION}
-  target="email-subscribe-sink"
-  class="flex flex-col sm:flex-row gap-2"
-  novalidate
->
-  <input name="email" type="email" required autocomplete="email"
-         placeholder="Your email" class="input input-bordered w-full sm:w-72" />
-  <input name="zip" type="text" inputmode="numeric" autocomplete="postal-code"
-         placeholder="ZIP (optional)" class="input input-bordered w-full sm:w-32" />
-
-  <div id="ts-box"
-       class="cf-turnstile"
-       data-sitekey={TURNSTILE_SITE_KEY}
-       data-theme="light"
-       data-size="compact"></div>
+<form id="email-subscribe" class="flex flex-col sm:flex-row sm:flex-wrap gap-2" novalidate>
+  <input
+    name="email"
+    type="email"
+    required
+    autocomplete="email"
+    placeholder="Your email"
+    class="input input-bordered w-full sm:w-72"
+  />
+  <input
+    name="zip"
+    type="text"
+    inputmode="numeric"
+    autocomplete="postal-code"
+    placeholder="ZIP (optional)"
+    class="input input-bordered w-full sm:w-32"
+  />
 
   <button type="submit" class="btn btn-primary">Join</button>
-</form>
 
+<!-- MOVED INSIDE FORM; basis-full forces it onto its own row -->
+  <div id="ts-wrapper" class="w-full sm:basis-full mt-2">
+    <div
+      id="ts-box"
+      class="cf-turnstile"
+      data-sitekey={TURNSTILE_SITE_KEY}
+      data-theme="auto"
+      data-size="flexible"
+      data-refresh-expired="auto"
+      data-appearance="always"
+    ></div>
+  </div>
+
+</form>
 <p id="email-subscribe-msg" class="text-sm mt-2" aria-live="polite"></p>
 
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script is:inline>
+
   const API_ENDPOINT = "/api/subscribe";
-  const form = document.querySelector("#email-subscribe");
-  const msg  = document.querySelector("#email-subscribe-msg");
-  const box  = document.querySelector("#ts-box");
-  let widgetId = null;
+    const form = document.querySelector("#email-subscribe");
+    const msg  = document.querySelector("#email-subscribe-msg");
+    const box  = document.querySelector("#ts-box");
 
-  const dl = (event, params = {}) => {
-    (window.dataLayer = window.dataLayer || []).push({ event, ...params });
-  };
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault(); // never navigate / no URL params
+      msg.textContent = "";
 
-  // Ensure we can fetch a token on demand
-  window.addEventListener("load", () => {
-    // @ts-ignore
-    if (window.turnstile && box) widgetId = window.turnstile.render(box);
-  });
+      const btn = form.querySelector('button[type="submit"]');
+      btn?.setAttribute("disabled", "");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    msg.textContent = "";
-    const btn = form.querySelector('button[type="submit"]');
-    btn?.setAttribute("disabled", "");
+      // Turnstile puts a hidden input named "turnstile" (see data-response-field-name above)
+      const token = document.querySelector('input[name="cf-turnstile-response"]')?.value || "";
 
-    // Emit 'submit' immediately
-    const emailVal = (form.querySelector('input[name="email"]')?.value || "").trim();
-    dl("subscribe_submit", { email_present: Boolean(emailVal) ? "yes" : "no" });
+      if (!token) {
+        msg.textContent = "Please complete the check.";
+        btn?.removeAttribute("disabled");
+        return;
+      }
 
-    // Always get a token. If empty → block submit.
-    // @ts-ignore
-    const token = window.turnstile?.getResponse?.(widgetId);
-    if (!token) {
-      msg.textContent = "Please complete the check.";
-      dl("subscribe_error", { error: "missing_turnstile_token" });
-      btn?.removeAttribute("disabled");
-      return;
-    }
+      const payload = Object.fromEntries(new FormData(form));
+      payload.turnstile = token;
 
-    const payload = Object.fromEntries(new FormData(form));
-    payload["cf-turnstile-response"] = token;
 
-    try {
-      const res  = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.error) throw body;
+      try {
+        const res  = await fetch(API_ENDPOINT, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const body = await res.json().catch(() => ({}));
 
-      msg.textContent = "You're in.";
-      dl("subscribe_success", { status: "ok" });
-      form.reset();
-      // @ts-ignore
-      window.turnstile?.reset?.(widgetId);
-    } catch (err) {
-      msg.textContent = "Try again.";
-      dl("subscribe_error", {
-        error: (err && (err.error || err.message)) ? String(err.error || err.message) : "request_failed"
-      });
-    } finally {
-      btn?.removeAttribute("disabled");
-    }
-  });
-</script>
+        if (!res.ok || body.error) throw body;
+
+        msg.textContent = "You're in! An email from Penny@BigBeautifulBoycott.us is in your inbox to confirm.";
+        form.reset();
+      } catch {
+        msg.textContent = "Try again.";
+      } finally {
+        btn?.removeAttribute("disabled");
+      }
+    });
+  </script>

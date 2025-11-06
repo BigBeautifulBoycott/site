@@ -10,3 +10,17 @@
 .site-footer .bottom-links a {
     text-underline-offset: 2px;
 }
+
+#ts-wrapper {
+  display: flex;
+}
+
+/* MOBILE: Make widget full-width and flexible */
+@media (max-width: 640px) {
+  #ts-wrapper {
+    justify-content: flex-start; /* Align left on mobile so it's natural */
+  }
+  #ts-box {
+    width: 100%;
+  }
+}
