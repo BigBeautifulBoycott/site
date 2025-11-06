@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/BigBeautifulBoycott/site/compare/v1.5.0...v1.6.0) (2025-11-06)
+
+
+### Features
+
+* cloudfalre turnstyle ([25d9cc2](https://github.com/BigBeautifulBoycott/site/commit/25d9cc2d2532f7058b431258fb273fe7df5b51d6))
+
+
+### Bug Fixes
+
+* Mobile viewport ([4f78670](https://github.com/BigBeautifulBoycott/site/commit/4f786707cf51f4c0f833c817593e64cac3cac376))
+
 ## [1.5.0](https://github.com/BigBeautifulBoycott/site/compare/v1.4.0...v1.5.0) (2025-11-03)
 
 
