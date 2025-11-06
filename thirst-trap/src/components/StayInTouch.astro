@@ -1,0 +1,137 @@
+---
+const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const API_ENDPOINT = "/api/subscribe";
+
+export interface Props {
+  heading?: string;
+  subheading?: string;
+}
+const {
+  heading = "Bypass the Algorithms",
+  subheading = "Get updates when new companies are added. If our socials get banned, we can always email.",
+} = Astro.props;
+---
+
+<section
+  id="stay-in-touch"
+  class="relative mb-10 overflow-hidden rounded-3xl border border-base-300/70 bg-gradient-to-br from-base-200/80 via-base-100 to-base-100 shadow-sm"
+>
+  <!-- Same decorative blobs as FAQ -->
+  <div class="pointer-events-none absolute -top-24 -left-24 size-72 rounded-full bg-primary/10 blur-3xl"></div>
+  <div class="pointer-events-none absolute -bottom-28 -right-24 size-72 rounded-full bg-secondary/10 blur-3xl"></div>
+
+  <div class="p-4 sm:p-6 lg:p-8">
+    <!-- Stack on mobile; align side-by-side on large -->
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+
+      <!-- LEFT COPY -->
+      <div class="flex-1 min-w-[240px]">
+        <h2 class="text-2xl font-extrabold tracking-tight">{heading}</h2>
+        <p class="text-sm sm:text-base opacity-75 mt-1 max-w-prose">{subheading}</p>
+      </div>
+
+      <!-- FORM (mobile-first; large tap targets) -->
+      <form id="stay-form" class="grid w-full lg:w-auto gap-2 sm:gap-2
+                                  grid-cols-1 sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[1fr_1fr_minmax(90px,120px)_auto]"
+            novalidate>
+        <!-- Email first for speed on mobile -->
+        <input
+          name="email"
+          type="email"
+          required
+          inputmode="email"
+          autocomplete="email"
+          autocapitalize="off"
+          autocorrect="off"
+          enterkeyhint="go"
+          placeholder="you@example.com"
+          class="input input-bordered w-full"
+        />
+
+        <input
+          name="first_name"
+          type="text"
+          autocomplete="name"
+          placeholder="Name (optional)"
+          class="input input-bordered w-full"
+        />
+
+        <input
+          name="zip"
+          type="text"
+          inputmode="numeric"
+          autocomplete="postal-code"
+          placeholder="ZIP (optional)"
+          class="input input-bordered w-full sm:w-full"
+        />
+
+        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+          Subscribe
+        </button>
+
+        <!-- Turnstile: same tech; wrapper constrains width on mobile without changing attributes -->
+        <div id="ts-wrapper-compact" class="mt-1 sm:mt-1 col-span-1 sm:col-span-3 lg:col-span-4">
+          <div
+            id="ts-box-compact"
+            class="cf-turnstile inline-block max-w-[300px] w-full"
+            data-sitekey={TURNSTILE_SITE_KEY}
+            data-theme="auto"
+            data-size="flexible"
+            data-refresh-expired="auto"
+            data-appearance="always"
+          ></div>
+        </div>
+
+        <p id="stay-msg" class="text-sm mt-1 col-span-1 sm:col-span-3 lg:col-span-4" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Same loader -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<!-- Same subscribe flow, just scoped to this form/ids -->
+<script is:inline>
+  const API_ENDPOINT = "/api/subscribe";
+  const form = document.querySelector("#stay-form");
+  const msg  = document.querySelector("#stay-msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();               // never navigate / no URL params
+    msg.textContent = "";
+
+    const btn = form.querySelector('button[type="submit"]');
+    btn?.setAttribute("disabled", "");
+
+    // same Turnstile hidden input name
+    const token = document.querySelector('input[name="cf-turnstile-response"]')?.value || "";
+    if (!token) {
+      msg.textContent = "Please complete the check.";
+      btn?.removeAttribute("disabled");
+      return;
+    }
+
+    // same payload pattern; adds optional name + zip
+    const payload = Object.fromEntries(new FormData(form));
+    payload.turnstile = token;
+
+    try {
+      const res  = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok || body.error) throw body;
+
+      msg.textContent = "You're in! An email from Penny@BigBeautifulBoycott.us is in your inbox to confirm.";
+      form.reset();
+    } catch {
+      msg.textContent = "Try again.";
+    } finally {
+      btn?.removeAttribute("disabled");
+    }
+  });
+</script>

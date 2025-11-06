@@ -8,6 +8,7 @@ import heroBanner from "../assets/hero/beautiful-banner.png";
 import Faq from "../components/Faq.astro";
 import heroFix from "../assets/hero-fix-me.png";
 import { Image } from "astro:assets";
+import StayInTouch from "../components/StayInTouch.astro";
 
 /* CSS: import at the page level so Astro bundles it correctly */
 import "../styles/hero.css";
@@ -80,6 +81,8 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
 
 
   <Faq />
+
+  <StayInTouch />
 
   <!-- Keep one H1 per page; this becomes H2 -->
   <h2 class="text-3xl font-bold mb-4">The Companies</h2>
