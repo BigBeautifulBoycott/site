@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/BigBeautifulBoycott/site/compare/v1.6.0...v1.6.1) (2025-11-07)
+
+
+### Bug Fixes
+
+* homepage copy ([19af3d2](https://github.com/BigBeautifulBoycott/site/commit/19af3d297df6284c6b352e87abbc8f6e334e610e))
+
 ## [1.6.0](https://github.com/BigBeautifulBoycott/site/compare/v1.5.0...v1.6.0) (2025-11-06)
 
 
