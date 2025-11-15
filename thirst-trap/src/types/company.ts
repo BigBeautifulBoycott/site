@@ -61,24 +61,28 @@ export type Company = {
   intro?: string;   // CKEditor HTML
   about?: string;   // short 30–65 char blurb
   Reasoning?: ReasoningBlock;
-
   logo?:
     | { data?: { attributes?: StrapiImage } }
     | { attributes?: StrapiImage }
     | StrapiImage;
-
-  // if you want to type sector later, we can, but keep it loose for now
   sector?: any;
-
   category?: { data?: { attributes?: Category } } | { attributes?: Category } | Category;
   tags?: { data?: { attributes?: Tag }[] };
-
   Website?: Link;
   Socials?: Link[];
-
   reason?: { data?: { attributes?: { name?: string; description?: string } } };
-
   Evaluation?: Evaluation;
-
   share_settings?: ShareSettings | null;
+  parent_company?: any; // Strapi relation (likely { data: [...] })
+  week?: {
+    data?: {
+      attributes?: {
+        name?: string;
+        slug?: string;
+        week_number?: number;
+        icon?: string | null;
+        color?: string | null;
+      };
+    };
+  };
 };

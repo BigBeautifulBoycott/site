@@ -1,4 +1,6 @@
 ---
+// src/pages/index.astro
+
 import Base from "../layouts/Base.astro";
 import Hero from "../components/Hero.astro";
 import CompanyCard from "../components/CompanyCard.astro";
@@ -25,6 +27,7 @@ const res = await strapi(
   + "&populate=sector"
   + "&populate=Evaluation"
   + "&populate=Evaluation.reasoning_tags"
+  + "&populate=week"
 );
 const companies = (unwrap<any[]>(res) ?? []) as Company[];
 

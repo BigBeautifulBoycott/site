@@ -819,3 +819,145 @@
   background: #f3f4f6;
   border-color: rgba(148, 163, 184, 0.7);
 }
+
+/* ============================
+   How-to actions
+   ============================ */
+
+.company-actions {
+  margin-top: 2.5rem;
+}
+
+.company-actions__heading {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.company-actions__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card */
+.company-action {
+  border-radius: 0.85rem;
+  border: 1px solid var(--bbb-border, #e5e7eb);
+  background: #ffffff;
+  padding: 0.7rem 0.85rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .company-action {
+    background: #020617;
+    border-color: var(--bbb-border-dark, #1f2933);
+  }
+}
+
+/* Toggle is used only on mobile */
+.company-action__toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Header row */
+.company-action__header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.company-action__emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.company-action__title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  flex: 1 1 auto;
+}
+
+/* Type chip */
+.company-action__chip {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.company-action__chip--note {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.company-action__chip--yes {
+  background: #ecfdf3;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.company-action__chip--maybe {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fed7aa;
+}
+
+.company-action__chip--no {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* Body text */
+.company-action__body {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.company-action__description {
+  margin: 0;
+}
+
+.company-action__parent {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Mobile: collapse body by default, tap to expand */
+@media (max-width: 640px) {
+  .company-action__header {
+    cursor: pointer;
+  }
+
+  .company-action__body {
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    transition: max-height 0.2s ease, padding-top 0.2s ease;
+  }
+
+  .company-action__toggle:checked + .company-action__header + .company-action__body {
+    max-height: 500px; /* enough for our text */
+    padding-top: 0.35rem;
+  }
+}
+
+/* Desktop: always open, no accordion behaviour */
+@media (min-width: 641px) {
+  .company-action__body {
+    max-height: none;
+    padding-top: 0.4rem;
+  }
+
+  .company-action__toggle {
+    display: none;
+  }
+}

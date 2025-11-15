@@ -9,8 +9,8 @@ import CompanyReasoning from "../../components/CompanyReasoning.astro";
 import CompanyContact from "../../components/CompanyContact.astro";
 import CompanySources from "../../components/CompanySources.astro";
 import CompanyShare from "../../components/CompanyShare.astro";
+import CompanyActionItems from "../../components/CompanyActionItems.astro";
 
-import { resolveShareForCompany } from "../../lib/share";
 import "../../styles/company.css";
 
 export async function getStaticPaths() {
@@ -35,7 +35,6 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 
-
 /* ---------- Fetch ---------- */
 const params = new URLSearchParams();
 params.set("publicationState", "live");
@@ -54,6 +53,12 @@ params.set("fields", "name,slug,about,intro,ticker,boycott_target");
   "Reasoning",
   "Reasoning.Source",
   "ActionItems",
+
+  // parent chain (only parent_company exists)
+  "parent_company",
+  "parent_company.Reasoning",
+  "parent_company.Reasoning.Source",
+  "parent_company.ActionItems",
 ].forEach((key) => params.append("populate", key));
 
 const res = await strapi(`/api/companies?${params.toString()}`);
@@ -77,25 +82,63 @@ const srcSet = [srcSmall && `${srcSmall} 156w`, srcMedium && `${srcMedium} 500w`
   .filter(Boolean)
   .join(", ");
 
-/* ---------- Meta (category/tags kept for later) ---------- */
-const category =
-  company?.category?.name ??
-  company?.category?.data?.attributes?.name ??
-  null;
 
-const tags = (company?.tags?.data ?? [])
-  .map((t: any) => t?.attributes?.name ?? t?.name)
-  .filter(Boolean);
 
 /* ---------- Content ---------- */
-const about: string | undefined = company.about;   // short text under name
-const introHtml: string | undefined = company.intro; // long CKEditor intro
+const about: string | undefined = company.about;
+const introHtml: string | undefined = company.intro;
 const actions: any[] = Array.isArray(company.ActionItems) ? company.ActionItems : [];
 
-/* ---------- Reasoning + Sources (single component) ---------- */
+/* ---------- Reasoning + Sources (company) ---------- */
 const reasoningBlock: any | null = company.Reasoning ?? null;
 const reasoningHtml: string = reasoningBlock?.content || "";
 const sources: any[] = Array.isArray(reasoningBlock?.Source) ? reasoningBlock.Source : [];
+
+/* ---------- Parent company reasoning + actions ---------- */
+
+const parentCompanyRaw: any[] =
+  Array.isArray(company.parent_company?.data)
+    ? company.parent_company.data
+    : Array.isArray(company.parent_company)
+    ? company.parent_company
+    : [];
+
+// Reasoning blocks
+const parentReasonBlocks = parentCompanyRaw
+  .map((node: any) => {
+    const attrs = node?.attributes ?? node ?? {};
+    const block = attrs.Reasoning ?? null;
+    const html = block?.content || "";
+    const srcs: any[] = Array.isArray(block?.Source) ? block.Source : [];
+
+    return {
+      name: attrs.name ?? "",
+      slug: attrs.slug ?? "",
+      reasoningHtml: html,
+      sources: srcs,
+    };
+  })
+  .filter((p) => p.reasoningHtml && p.reasoningHtml.trim().length > 0);
+
+// Parent action items – grouped by parent company
+const parentActions = parentCompanyRaw
+  .map((node: any) => {
+    const attrs = node?.attributes ?? node ?? {};
+    const parentName = attrs.name ?? "";
+    const list: any[] = Array.isArray(attrs.ActionItems) ? attrs.ActionItems : [];
+
+    return {
+      companyName: parentName,
+      actions: list,
+    };
+  })
+  .filter((p) => p.companyName && p.actions.length > 0);
+
+// Combined sources: company first, then all parents
+const allSources: any[] = [
+  ...sources,
+  ...parentReasonBlocks.flatMap((p) => p.sources),
+];
 
 /* ---------- Evaluation ---------- */
 const evaln = company.Evaluation ?? null;
@@ -109,7 +152,7 @@ const badgeClass =
     ? "badge badge-error normal-case"
     : "";
 
-// reasoning tags (if you use them somewhere else)
+// reasoning tags
 let rawTags: any[] = [];
 if (Array.isArray(evaln?.reasoning_tags)) {
   rawTags = evaln.reasoning_tags;
@@ -134,21 +177,15 @@ function textColorFor(bg: string) {
 // Build canonical URL for this page
 const pageUrl = new URL(`/company/${company.slug}/`, Astro.site).toString();
 
-// Resolved share payload (fallbacks + overrides)
-const share = resolveShareForCompany(company, pageUrl);
-
 /* ---------- Contact (dynamic zone) ---------- */
 const contactItems: any[] = Array.isArray(company.contact) ? company.contact : [];
 const socials = contactItems.filter((c) => c?.__component === "contact.social-profile");
 
 /* ---------- Share config (Strapi overrides + fallbacks) ---------- */
-
-// adjust this path to however you attached the component
 const shareSettings = company.ShareSettings || company.share_settings || {};
 
 const shareEnabled = shareSettings.Enable ?? true;
 
-// canonical URL for this company page
 const canonicalUrl =
   shareSettings.link_override?.trim() ||
   `https://bigbeautifulboycott.us/company/${company.slug}`;
@@ -161,7 +198,6 @@ const baseMessage =
   company.about ||
   `Learn more about ${company.name} on Big Beautiful Boycott.`;
 
-// shorter text for X / SMS, etc.
 const baseShort =
   shareSettings.message_short?.trim() ||
   `${company.name} on Big Beautiful Boycott`;
@@ -170,12 +206,10 @@ const shareTitle = shareSettings.title?.trim() || baseTitle;
 const shareMessage = baseMessage;
 const shareMessageShort = baseShort;
 const shareHashtags = shareSettings.hashtags?.trim() || "BigBeautifulBoycott";
-
 ---
 
 <Base>
   <article class="company prose max-w-none">
-    <!-- Header -->
     <CompanyHeader company={company} />
 
     {shareEnabled && (
@@ -187,8 +221,6 @@ const shareHashtags = shareSettings.hashtags?.trim() || "BigBeautifulBoycott";
         hashtags={shareHashtags}
       />
     )}
-
-
 
     {socials.length > 0 && (
       <div>
@@ -217,36 +249,25 @@ const shareHashtags = shareSettings.hashtags?.trim() || "BigBeautifulBoycott";
       </div>
     )}
 
-
-
-    {/* Intro prose (CKEditor `intro` field) */}
     {introHtml && (
       <section class="mt-6">
         <div class="prose max-w-none" set:html={introHtml} />
       </section>
     )}
 
-    {/* Evidence section (body only) */}
-    <CompanyReasoning reasoning_html={reasoningHtml} />
+    {/* Evidence & Context + parent-company reasoning */}
+    <CompanyReasoning
+      reasoning_html={reasoningHtml}
+      parent_reason_blocks={parentReasonBlocks}
+    />
 
-    {Array.isArray(actions) && actions.length > 0 && (
-      <section class="mt-8">
-        <h2>How to Boycott</h2>
-        <ul class="mt-4 space-y-4">
-          {actions.map((a, idx) => (
-            <li class="border-l-4 pl-3" key={idx}>
-              <h3 class="font-semibold">{a.Title}</h3>
-              <p class="mt-1 text-sm">{a.Description}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
-    <div class="prose max-w-none mt-8">
-      🚫 Don’t harass employees or patrons of this company.<br />
-      🚫 Don’t spread misinformation.
-    </div>
+    {/* Action items: company first, then parent; note/yes/maybe/no order with emojis */}
+    <CompanyActionItems
+      companyName={company.name}
+      sentiment={sentiment}
+      companyActions={actions}
+      parentActions={parentActions}
+    />
 
     <CompanyContact
       companySlug={company.slug}
@@ -254,19 +275,9 @@ const shareHashtags = shareSettings.hashtags?.trim() || "BigBeautifulBoycott";
       contactItems={contactItems}
     />
 
-    {tags.length > 0 && (
-      <section class="mt-8">
-        <h2>Topics</h2>
-        <div class="flex flex-wrap gap-2">
-          {tags.map((t) => (
-            <span class="badge badge-ghost">{t}</span>
-          ))}
-        </div>
-      </section>
-    )}
 
 
-    {/* Sources at the bottom */}
-    <CompanySources sources={sources} />
+    {/* Combined sources at the bottom */}
+    <CompanySources sources={allSources} />
   </article>
 </Base>
