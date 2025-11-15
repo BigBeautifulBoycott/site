@@ -1,27 +1,56 @@
-/* src/styles/company.css */
+/* ------------------------------------------------------------------
+ * Brand tokens – pulled from daisyUI theme (primary, primary-focus)
+ * ------------------------------------------------------------------ */
 
-/* ---- Company page wrapper ---- */
-.company {}
+.company {
+  /* Color tokens fallback if theme vars aren't found */
+  --bbb-link: hsl(var(--p, 248 83% 60%));        /* primary */
+  --bbb-link-hover: hsl(var(--pf, 248 83% 52%)); /* primary focus */
+  --bbb-border: hsl(var(--b3, 220 14% 90%));
+  --bbb-border-dark: #2a2a2a;
+}
 
-/* Typography (scoped “prose”) */
-.company .prose { line-height: 1.7; }
-.company .prose p { margin: .75rem 0; }
+/* ------------------------------------------------------------------
+ * Base typography
+ * ------------------------------------------------------------------ */
+
+.company .prose {
+  line-height: 1.7;
+}
+
+.company .prose p {
+  margin: .75rem 0;
+}
 
 .company .prose h1,
 .company .prose h2,
-.company .prose h3 { line-height: 1.25; margin: 1.1rem 0 .5rem; font-weight: 700; }
+.company .prose h3 {
+  line-height: 1.25;
+  margin: 1.1rem 0 .5rem;
+  font-weight: 700;
+}
 
 .company .prose h4,
 .company .prose h5,
-.company .prose h6 { margin: .9rem 0 .4rem; font-weight: 600; }
+.company .prose h6 {
+  margin: .9rem 0 .4rem;
+  font-weight: 600;
+}
 
 .company .prose ul,
-.company .prose ol { margin: .75rem 0; padding-left: 1.25rem; }
+.company .prose ol {
+  margin: .75rem 0;
+  padding-left: 1.25rem;
+}
+
 .company .prose ul { list-style: disc; }
 .company .prose ol { list-style: decimal; }
-.company .prose li { margin: .25rem 0; }
 
-/* Clean quote (no background box) */
+.company .prose li {
+  margin: .25rem 0;
+}
+
+/* Blockquote */
 .company .prose blockquote {
   margin: 1rem 0;
   padding-left: .75rem;
@@ -29,114 +58,57 @@
   color: inherit;
 }
 
-/* Inline elements */
-.company .prose a { text-decoration: underline; text-underline-offset: 2px; }
-.company .prose strong { font-weight: 600; }
-.company .prose em { font-style: italic; }
+/* ------------------------------------------------------------------
+ * Inline elements (LINKS, bold, italics)
+ * ------------------------------------------------------------------ */
 
-/* Tidy empties Strapi sometimes emits */
+.company .prose a,
+.company .reasoning-sources a {
+  color: var(--bbb-link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  transition: color .15s ease, text-decoration-thickness .15s ease;
+}
+
+.company .prose a:hover,
+.company .reasoning-sources a:hover {
+  color: var(--bbb-link-hover);
+  text-decoration-thickness: 2px;
+}
+
+.company .prose strong {
+  font-weight: 600;
+}
+
+.company .prose em {
+  font-style: italic;
+}
+
+/* Clean stray CKEditor empties */
 .company .prose p:empty { display: none; }
 .company .prose p > br:only-child { display: none; }
 
-/* (Optional) header tweaks, safe + scoped */
+/* Optional header logo */
 .company .header__logo { height: 64px; width: 64px; }
 @media (min-width: 768px) {
   .company .header__logo { height: 80px; width: 80px; }
 }
 
+/* ------------------------------------------------------------------
+ * Social links
+ * ------------------------------------------------------------------ */
 
-/* --- Social links (works with your existing markup) --- */
-/* target the exact socials row you already render */
-.company .flex.flex-wrap.gap-3 {
-  gap: .5rem;                 /* a bit tighter */
-  align-items: stretch;       /* equal pill heights */
-}
-
-/* make each pill consistent size and layout */
-.company .flex.flex-wrap.gap-3 > a {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  height: 40px;               /* uniform height */
-  padding: 0 .75rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: var(--card, #fff);
-  text-decoration: none;
-  line-height: 1;
-  /* responsive width without changing to grid */
-  flex: 1 1 180px;            /* wrap nicely; consistent widths */
-}
-
-@media (min-width: 768px) {
-  .company .flex.flex-wrap.gap-3 > a { flex: 0 1 220px; }
-}
-
-/* icon size stays consistent even if the source SVG/PNG varies */
-.company .flex.flex-wrap.gap-3 > a img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  flex: 0 0 18px;
-}
-
-/* label stays on one line, trims cleanly if long */
-.company .flex.flex-wrap.gap-3 > a span {
-  font-size: .95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* hover/focus polish */
-.company .flex.flex-wrap.gap-3 > a:hover { background: var(--hover, #f7f7f7); }
-.company .flex.flex-wrap.gap-3 > a:active { transform: translateY(.5px); }
-.company .flex.flex-wrap.gap-3 > a:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
-}
-
-/* dark mode */
-@media (prefers-color-scheme: dark) {
-  .company .flex.flex-wrap.gap-3 > a {
-    border-color: #2a2a2a;
-    background: #111318;
-  }
-  .company .flex.flex-wrap.gap-3 > a:hover { background: #151820; }
-}
-
-
-/* --- Social Links (tight & button-like) --- */
-/* container */
 .company-social {
   display: flex;
   flex-wrap: wrap;
-  justify-content: left;   /* <-- center them */
-  align-items: center;       /* keep vertical alignment */
-  gap: 0.6rem;               /* clean spacing */
+  justify-content: left;
+  align-items: center;
+  gap: 0.6rem;
   margin-top: 1.25rem;
 }
 
-.company-social a {
-  border-radius: 8px;
-  padding: 0.35rem 0.7rem;
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.company-social a:hover {
-  background: #f6f6f6;
-}
-
-@media (prefers-color-scheme: dark) {
-  .company-social a:hover {
-    background: #262626;
-  }
-}
-
-/* each link */
 .company-social-item {
   display: inline-flex;
   align-items: center;
@@ -144,11 +116,10 @@
   padding: 0.35rem 0.65rem;
   border: 1px solid #dcdcdc;
   border-radius: 6px;
-  font-size: 0.95rem;
   background: transparent;
   text-decoration: none;
   color: inherit;
-  line-height: 1;
+  font-size: 0.95rem;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -157,212 +128,310 @@
   border-color: #cfcfcf;
 }
 
-/* icon sizing */
 .company-social-item img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* Mobile stacking */
+@media (max-width: 640px) {
+  .company-social {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+  .company-social-item {
+    width: 100%;
+    justify-content: center;
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 360px) {
+  .company-social {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Contact Section
+ * ------------------------------------------------------------------ */
+
+.company .contact h2 { margin-bottom: .25rem; }
+.company .contact .contact-group { display: grid; gap: 1.25rem; }
+.company .contact .contact-subgroup h3 { margin: 0 0 .5rem; }
+
+.company .contact .contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .5rem;
+}
+
+.company .contact .contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--bbb-border);
+  border-radius: .5rem;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+  line-height: 1.2;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.company .contact .contact-link:hover { background: #f7f7f7; }
+
+.company .contact .contact-label { font-weight: 600; }
+.company .contact .contact-domain { opacity: .8; }
+.company .contact .contact-note { margin-left: .35rem; opacity: .75; }
+
+@media (prefers-color-scheme: dark) {
+  .company .contact .contact-link { border-color: var(--bbb-border-dark); }
+  .company .contact .contact-link:hover { background: #151820; }
+}
+
+/* Addresses (no pills) */
+.company .contact .contact-list--addr .contact-address {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* ------------------------------------------------------------------
+ * Reasoning / Evidence
+ * ------------------------------------------------------------------ */
+
+.reasoning-block + .reasoning-block {
+  margin-top: 2rem;
+}
+
+.reasoning-sources {
+  font-size: 0.875rem;
+  padding-left: 1.25rem;
+  margin-top: .5rem;
+}
+
+.reasoning-sources li {
+  list-style-type: decimal;
+}
+
+.reasoning-source-meta {
+  color: #6b7280;
+  font-style: italic;
+}
+
+
+.company .contact .contact-link--social .contact-social-icon {
   width: 18px;
   height: 18px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
-/* label */
-.company-social-item span {
-  white-space: nowrap;
+/* ------------------------------------------------------------------
+ * Contact section – cleaner desktop + mobile layout
+ * ------------------------------------------------------------------ */
+
+.company .contact {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--bbb-border);
 }
 
-/* --- Even stacking on mobile --- */
-@media (max-width: 640px) {            /* phones */
-  .company-social {
-    display: grid;                      /* override the flex */
-    grid-template-columns: repeat(2, minmax(0, 1fr));  /* 2 equal columns */
-    gap: 0.6rem;
+/* Intro text under "Contact" */
+.company .contact-intro {
+  margin-top: 0.25rem;
+  margin-bottom: 1.75rem;
+  max-width: 40rem;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+@media (prefers-color-scheme: dark) {
+  .company .contact-intro {
+    color: #9ca3af;
   }
-  .company-social a,
-  .company-social .company-social-item {
-    width: 100%;                        /* fill each cell */
-    justify-content: center;            /* nice balance */
-    min-height: 38px;                   /* consistent hit area */
+}
+
+/* Layout: 1 column on mobile, 2 cards side-by-side on desktop */
+.company .contact-group {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .company .contact-group {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: flex-start;
   }
 }
 
-/* super-narrow screens */
-@media (max-width: 360px) {
-  .company-social { grid-template-columns: 1fr; }      /* 1 per row */
+/* Each section (Websites / Phone / Email / Addresses / Social) */
+.company .contact-subgroup {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--bbb-border);
+  background: #ffffff;
 }
 
-/* --- Contact section polish (websites / email / phone) --- */
-.company .contact h3 {
-  margin-bottom: .5rem;
+@media (prefers-color-scheme: dark) {
+  .company .contact-subgroup {
+    background: #020617;
+    border-color: var(--bbb-border-dark);
+  }
 }
 
-/* grid lists instead of vertical stacks */
+/* Sub-headings */
+.company .contact-subgroup h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+/* Lists inside each subgroup */
 .company .contact .contact-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: .5rem .65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-/* pill-like ghost links */
+/* Contact “pills” */
 .company .contact .contact-link {
   display: inline-flex;
   align-items: center;
-  gap: .45rem;
-  padding: .45rem .65rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: transparent;
+  gap: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--bbb-border);
+  background: #f9fafb;
   text-decoration: none;
   color: inherit;
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background .15s ease, border-color .15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
 }
 
-/* subtle arrow cue */
-.company .contact .contact-link::after {
-  content: "↗";
-  opacity: .55;
-  font-size: .9em;
-  margin-left: .15rem;
+.company .contact .contact-link:hover {
+  background: #eef2ff;
+  border-color: var(--bbb-link);
+  transform: translateY(-0.5px);
 }
 
-/* hover/focus */
-.company .contact .contact-link:hover { background: #f7f7f7; }
-.company .contact .contact-link:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+/* Label + value inside the pill */
+.company .contact .contact-label {
+  font-weight: 600;
 }
 
-/* notes after links (e.g., — Headquarters) */
-.company .contact .contact-list li > span {
-  margin-left: .35rem;
-  opacity: .75;
-  font-size: .9rem;
+.company .contact .contact-domain {
+  opacity: 0.85;
 }
 
-/* dark mode */
+/* Extra note to the right, e.g. “— Headquarters” */
+.company .contact .contact-note {
+  display: inline-block;
+  margin-left: 0.35rem;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+/* Addresses: let them breathe but no pill */
+.company .contact .contact-list--addr .contact-address {
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.company .contact .addr-type {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.company .contact .addr-lines {
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.company .contact .addr-note {
+  margin-top: 0.15rem;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+/* Social list inside contact (if you keep it there) */
+.company .contact .contact-list--social {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+}
+
+.company .contact .contact-list--social .contact-link {
+  background: #ffffff;
+}
+
 @media (prefers-color-scheme: dark) {
-  .company .contact .contact-link { border-color: #2a2a2a; }
-  .company .contact .contact-link:hover { background: #151820; }
-}
+  .company .contact .contact-link {
+    background: #020617;
+    border-color: var(--bbb-border-dark);
+  }
 
-/* --- Address cards: keep your structure, just unify look --- */
-.company .contact .not-prose li {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: var(--card, #fff);
-}
-
-@media (prefers-color-scheme: dark) {
-  .company .contact .not-prose li {
-    border-color: #2a2a2a;
-    background: #111318;
+  .company .contact .contact-link:hover {
+    background: #0b1120;
   }
 }
 
-/* Contact list grid */
-.company .contact .contact-list{
-  list-style:none;margin:0;padding:0;
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:.55rem .7rem;
-}
+/* =========================================
+ * Contact – mobile polish
+ * =======================================*/
 
-/* Pill-like links with optional meta (domain / email / phone) */
-.company .contact .contact-link{
-  display:inline-flex;align-items:center;gap:.5rem;
-  padding:.45rem .65rem;border:1px solid var(--border,#e5e7eb);
-  border-radius:.5rem;background:transparent;text-decoration:none;color:inherit;
-  line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:background .15s ease,border-color .15s ease;
-}
-.company .contact .contact-link__label{font-weight:600;}
-.company .contact .contact-link__meta{opacity:.75;font-size:.92rem;}
+@media (max-width: 640px) {
+  /* More breathing room between cards */
+  .company .contact .contact-group {
+    gap: 1rem;
+  }
 
-/* External arrow only on website links */
-.company .contact .contact-link--external::after{
-  content:"↗";opacity:.55;font-size:.9em;margin-left:.15rem;
-}
+  /* Softer, less cramped cards */
+  .company .contact .contact-subgroup {
+    padding: 0.9rem 1rem;
+    border-radius: 0.9rem;
+  }
 
-/* Hover/focus */
-.company .contact .contact-link:hover{background:#f7f7f7;}
-.company .contact .contact-link:focus-visible{outline:2px solid #2563eb;outline-offset:2px;}
+  /* Tighten section headings a bit */
+  .company .contact h2 {
+    margin-bottom: 0.5rem;
+  }
 
-@media (prefers-color-scheme:dark){
-  .company .contact .contact-link{border-color:#2a2a2a;}
-  .company .contact .contact-link:hover{background:#151820;}
-}
+  .company .contact h3 {
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.45rem;
+  }
 
-/* Addresses: no boxes */
-.company .contact .contact-list--addresses .address-item{
-  padding:0;border:none;background:transparent;border-radius:0;
-}
+  /* Slightly smaller pills so they don’t feel jammed */
+  .company .contact .contact-link {
+    padding: 0.4rem 0.6rem;
+    gap: 0.4rem;
+  }
 
-/* Contact layout */
-.company .contact h2 { margin-bottom: .25rem; }
-.company .contact .contact-group { display: grid; gap: 1.25rem; }
-.company .contact .contact-subgroup h3 { margin: 0 0 .5rem; }
+  .company .contact .contact-label {
+    font-size: 0.9rem;
+  }
 
-/* Lists */
-.company .contact .contact-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: .5rem;              /* vertical stack */
-}
-
-/* Websites: always stack (optionally go 2-col at ≥768px if you want) */
-/* .company .contact .contact-list--web { grid-template-columns: 1fr; } */
-
-/* Link pill */
-.company .contact .contact-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .45rem .65rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: transparent;
-  text-decoration: none;
-  color: inherit;
-  line-height: 1.2;
-  transition: background .15s ease, border-color .15s ease;
-}
-
-/* Label + value */
-.company .contact .contact-label { font-weight: 600; }
-.company .contact .contact-domain { opacity: .8; }
-
-/* External cue on website links only */
-.company .contact .contact-list--web .contact-link::after {
-  content: "↗";
-  opacity: .6;
-  font-size: .9em;
-  margin-left: .15rem;
-}
-
-/* Notes */
-.company .contact .contact-note { margin-left: .35rem; opacity: .75; }
-
-/* Addresses: no box */
-.company .contact .contact-list--addr .contact-address {
-  border: 0; background: transparent; padding: 0; border-radius: 0;
-}
-.company .contact .addr-type { font-weight: 600; margin-bottom: .1rem; }
-.company .contact .addr-lines { font-size: .95rem; line-height: 1.35; }
-.company .contact .addr-note { margin-top: .15rem; opacity: .75; font-size: .9rem; }
-
-/* Hover */
-.company .contact .contact-link:hover { background: #f7f7f7; }
-.company .contact .contact-link:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .company .contact .contact-link { border-color: #2a2a2a; }
-  .company .contact .contact-link:hover { background: #151820; }
+  .company .contact .contact-domain {
+    font-size: 0.9rem;
+  }
 }

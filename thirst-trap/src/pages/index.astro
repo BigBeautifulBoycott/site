@@ -20,10 +20,9 @@ const res = await strapi(
   + "?publicationState=live"
   + "&pagination[pageSize]=500"
   + "&sort=name:asc"
-  + "&fields=name,slug,state,about"
+  + "&fields=name,slug,about,ticker,boycott_target"
   + "&populate=logo"
-  + "&populate=category"
-  + "&populate=tags"
+  + "&populate=sector"
   + "&populate=Evaluation"
   + "&populate=Evaluation.reasoning_tags"
 );

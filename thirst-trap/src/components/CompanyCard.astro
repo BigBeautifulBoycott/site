@@ -4,7 +4,7 @@ import { severityRank } from "../lib/reasonTags";
 
 const { company } = Astro.props as { company: Company };
 
-/* -------- Core (robust media + category) -------- */
+/* -------- Core (robust media + sector) -------- */
 // Media can be {url,...} OR {data:{attributes:{url,...}}}
 const _logo =
   (company as any)?.logo?.data?.attributes ??
@@ -15,15 +15,15 @@ const _logo =
 const logoUrl: string = _logo?.url || "";
 const logoAlt: string = _logo?.alternativeText || `${company?.name} logo`;
 
-// Category can be nested or flat; color is optional
+// sector can be nested or flat; color is optional
 const _cat =
-  (company as any)?.category?.data?.attributes ??
-  (company as any)?.category?.attributes ??
-  (company as any)?.category ??
+  (company as any)?.sector?.data?.attributes ??
+  (company as any)?.sector?.attributes ??
+  (company as any)?.sector ??
   {};
 
-const categoryName: string = _cat?.name || "";
-const categoryColor: string | undefined = _cat?.color;
+const sectorName: string = _cat?.name || "";
+const sectorColor: string | undefined = _cat?.color;
 
 const about: string = company?.about || "";
 
@@ -78,7 +78,7 @@ function textColorFor(bg?: string) {
    data-company-slug={company.slug}
    data-company-name={company.name}
  >
-    <!-- Header: bigger logo; name + category stacked -->
+    <!-- Header: bigger logo; name + sector stacked -->
     <div class="flex items-start gap-3">
       {logoUrl
         ? <img src={logoUrl} alt={logoAlt}
@@ -87,17 +87,17 @@ function textColorFor(bg?: string) {
         : <div class="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded bg-base-200" />}
       <div class="min-w-0 flex-1">
         <h3 class="font-semibold text-lg leading-snug break-words">{company.name}</h3>
-        {categoryName && (
+        {sectorName && (
           <div class="mt-1">
             <span
               class={`inline-flex items-center rounded-full px-2 py-[2px] text-xs font-medium ${
-                categoryColor ? "" : "badge badge-ghost text-xs"
+                sectorColor ? "" : "badge badge-ghost text-xs"
               }`}
-              style={categoryColor
-                ? `background:${categoryColor};color:${textColorFor(categoryColor)};border:none`
+              style={sectorColor
+                ? `background:${sectorColor};color:${textColorFor(sectorColor)};border:none`
                 : ""}
             >
-              {categoryName}
+              {sectorName}
             </span>
           </div>
         )}

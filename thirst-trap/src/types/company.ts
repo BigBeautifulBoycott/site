@@ -31,6 +31,12 @@ export type ReasoningTag = {
   severity?: string;
 };
 
+export type ReasoningBlock = {
+  heading?: string;
+  content?: string;
+  Source?: any[];
+};
+
 export type Evaluation = {
   summary?: string;
   /** relation can arrive either populated as an array or as {data:[{attributes:...}]} */
@@ -42,26 +48,27 @@ export type Evaluation = {
 export type Company = {
   name: string;
   slug: string;
-  state?: "create" | "refine" | "stage" | "hold";
+  ticker?: string | null;
+  boycott_target?: boolean;
+  intro?: string;   // CKEditor HTML
+  about?: string;   // short 30–65 char blurb
+  Reasoning?: ReasoningBlock;
 
-  // Media shapes (either direct attributes or wrapped in data)
   logo?:
     | { data?: { attributes?: StrapiImage } }
     | { attributes?: StrapiImage }
     | StrapiImage;
 
-  category?: { data?: { attributes?: Category } } | { attributes?: Category } | Category;
+  // if you want to type sector later, we can, but keep it loose for now
+  sector?: any;
 
-  tags?: { data?: { attributes?: Tag }[] }; // (you said these aren't used now)
+  category?: { data?: { attributes?: Category } } | { attributes?: Category } | Category;
+  tags?: { data?: { attributes?: Tag }[] };
 
   Website?: Link;
   Socials?: Link[];
-  about?: string;
-  how_to_boycott?: unknown;
 
-  /** keep for legacy content that used `reason` single relation */
   reason?: { data?: { attributes?: { name?: string; description?: string } } };
 
-  /** the new structured evaluation with reasoning tags */
   Evaluation?: Evaluation;
 };

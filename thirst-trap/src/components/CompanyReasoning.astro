@@ -1,0 +1,19 @@
+---
+// src/components/CompanyReasoning.astro
+
+export interface Props {
+  reasoning_html?: string;   // CKEditor HTML
+}
+
+const reasoning_html = Astro.props.reasoning_html || "";
+---
+
+{reasoning_html && (
+  <section class="mt-8" id="evidence">
+    <h2>Evidence & Context</h2>
+
+    <article class="mt-6 reasoning-block">
+      <div class="prose max-w-none" set:html={reasoning_html} />
+    </article>
+  </section>
+)}
