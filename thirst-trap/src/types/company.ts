@@ -1,14 +1,22 @@
 // src/types/company.ts
 import type { StrapiImage } from "./strapi";
 
-export type Tag = { name: string; slug: string; summary?: string };
 
-export type Category = {
-  name: string;
-  slug: string;
-  description?: string;
-  color?: string;        // you are storing this on Category
-  icon?: string;
+
+export type ShareSettings = {
+  Enable?: boolean;
+  share_image?:
+    | { data?: { attributes?: StrapiImage } }
+    | { attributes?: StrapiImage }
+    | StrapiImage
+    | null;
+  creator_notes?: string | null;
+
+  title?: string | null;
+  message?: string | null;
+  message_short?: string | null;
+  hashtags?: string | null;      // comma or space separated
+  link_override?: string | null;
 };
 
 export type Link = {
@@ -71,4 +79,6 @@ export type Company = {
   reason?: { data?: { attributes?: { name?: string; description?: string } } };
 
   Evaluation?: Evaluation;
+
+  share_settings?: ShareSettings | null;
 };

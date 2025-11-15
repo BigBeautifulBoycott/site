@@ -435,3 +435,387 @@
     font-size: 0.9rem;
   }
 }
+
+
+/* ============================================================
+   Share: inline row + mobile FAB + bottom sheet
+   ============================================================ */
+
+.share-block {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.share-block--bottom {
+  margin-top: 2.5rem;
+}
+
+/* Inline row */
+
+.share-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #4b5563;
+}
+
+.share-inline__label {
+  font-weight: 600;
+}
+
+.share-inline__icons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.share-inline__icons a,
+.share-inline__icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.share-inline__icons img,
+.share-inline__icon-button img {
+  width: 16px;
+  height: 16px;
+}
+
+.share-inline__icons a:hover,
+.share-inline__icon-button:hover {
+  background: #f3f4f6;
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+/* FAB (mobile only) */
+
+.company-share-fab-wrap {
+  position: fixed;
+  inset-block-end: 1.5rem;
+  inset-inline-end: 1.25rem;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.company-share-fab {
+  pointer-events: auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 9999px;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bbb-link);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+.company-share-fab-icon img {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+.company-share-fab:hover,
+.company-share-fab:focus-visible {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.3),
+              0 4px 8px rgba(15, 23, 42, 0.2);
+  outline: none;
+}
+
+.company-share-fab:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22),
+              0 2px 4px rgba(15, 23, 42, 0.18);
+}
+
+@media (min-width: 768px) {
+  .company-share-fab-wrap {
+    display: none; /* desktop: just use inline row */
+  }
+}
+
+/* Bottom sheet & overlay */
+
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 59;
+}
+
+.share-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.share-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100%;
+  max-height: 80vh;
+  background: #ffffff;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.2);
+  padding: 0.9rem 1.1rem 1.2rem;
+  transition: bottom 0.22s ease;
+  z-index: 60;
+  font-size: 0.9rem;
+}
+
+.share-sheet--open {
+  bottom: 0;
+}
+
+.share-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.share-sheet__title {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.share-sheet__close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.share-sheet__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Native share button */
+
+.share-sheet__native {
+  width: 100%;
+  text-align: left;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.8rem;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.share-sheet__native span {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.share-sheet__native small {
+  display: block;
+  font-size: 0.76rem;
+  color: #6b7280;
+}
+
+/* Icon grid */
+
+.share-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem 0.3rem;
+}
+
+.share-sheet__grid a,
+.share-sheet__grid button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.share-sheet__grid img {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 0.4rem;
+  background: #ffffff;
+}
+
+/* Toast */
+
+.company-share-toast {
+  position: fixed;
+  inset-block-end: 4.5rem;
+  inset-inline-end: 1.25rem;
+  z-index: 61;
+  background: rgba(15, 23, 42, 0.94);
+  color: #f9fafb;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+}
+
+.company-share-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hide sheet/overlay on desktop – inline row is enough */
+
+@media (min-width: 768px) {
+  .share-sheet,
+  .share-overlay {
+    display: none;
+  }
+}
+/* Floating share FAB -------------------------------------------------- */
+
+.company-share-fab-wrap {
+  position: fixed;
+  inset-block-end: 1.5rem;   /* bottom */
+  inset-inline-end: 1.25rem; /* right */
+  z-index: 60;
+  pointer-events: none;      /* wrapper doesn't block clicks */
+}
+
+.company-share-fab {
+  pointer-events: auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* white pill with brand ring so TikTok logo pops */
+  background: #ffffff;
+  color: #000;
+  cursor: pointer;
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, 0.28),
+    0 3px 6px rgba(15, 23, 42, 0.18);
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
+
+/* add a subtle brand ring around it */
+.company-share-fab::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid var(--bbb-link);
+  pointer-events: none;
+}
+
+.company-share-fab:hover,
+.company-share-fab:focus-visible {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow:
+    0 18px 36px rgba(15, 23, 42, 0.3),
+    0 4px 8px rgba(15, 23, 42, 0.2);
+  outline: none;
+}
+
+.company-share-fab:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.22),
+    0 2px 4px rgba(15, 23, 42, 0.18);
+}
+
+.company-share-fab-icon img {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+/* Hide FAB on larger screens if you only want it mobile */
+@media (min-width: 768px) {
+  .company-share-fab-wrap {
+    display: none;
+  }
+}
+
+
+.share-sheet__creators {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  width: 100%;
+  padding: 0.75rem 1rem;
+
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+
+  background: #ffffff;
+  text-decoration: none;
+
+  margin-bottom: 1rem;
+
+  /* Typography */
+  color: #111827;
+}
+
+.share-sheet__creators span {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.share-sheet__creators small {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+/* Optional hover effect */
+.share-sheet__creators:hover {
+  background: #f3f4f6;
+  border-color: rgba(148, 163, 184, 0.7);
+}

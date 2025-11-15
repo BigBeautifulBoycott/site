@@ -1,0 +1,346 @@
+---
+interface Props {
+  url: string;
+  title: string;
+  message: string;
+  messageShort?: string;
+  hashtags?: string;
+  /** Optional: tweak spacing if this is at the very bottom */
+  variant?: "default" | "bottom";
+}
+
+const {
+  url,
+  title,
+  message,
+  messageShort = message,
+  hashtags = "",
+  variant = "default",
+} = Astro.props;
+
+// ---------- Encode + share URLs ----------
+const encodedUrl = encodeURIComponent(url);
+const encodedShort = encodeURIComponent(messageShort);
+const hashtagParam =
+  hashtags
+    .split(/[,\s#]+/)
+    .filter(Boolean)
+    .join(",") || "";
+
+const encodedHashtags = encodeURIComponent(hashtagParam);
+
+const xUrl =
+  `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedShort}` +
+  (hashtagParam ? `&hashtags=${encodedHashtags}` : "");
+
+// Bluesky: text + URL
+const blueskyUrl = `https://bsky.app/intent/compose?text=${encodedShort}%20${encodedUrl}`;
+
+const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+const redditUrl   = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedShort}`;
+const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+
+const emailUrl = `mailto:?subject=${encodeURIComponent(
+  title
+)}&body=${encodeURIComponent(message + "\n\n" + url)}`;
+
+const smsUrl = `sms:?&body=${encodeURIComponent(messageShort + " " + url)}`;
+
+// Simple Messenger share link
+const messengerUrl = `https://www.facebook.com/dialog/send?link=${encodedUrl}`;
+---
+
+<section class={`share-block ${variant === "bottom" ? "share-block--bottom" : ""}`}>
+  <!-- Inline bar (desktop + mobile) -->
+  <div class="share-inline" aria-label="Share this company">
+    <span class="share-inline__label">Share</span>
+    <div class="share-inline__icons">
+      <a href={xUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on X / Twitter">
+        <img src="/icons/social/x.svg" alt="" loading="lazy" />
+      </a>
+      <a href={facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">
+        <img src="/icons/social/facebook.svg" alt="" loading="lazy" />
+      </a>
+      <a href={redditUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Reddit">
+        <img src="/icons/social/reddit.svg" alt="" loading="lazy" />
+      </a>
+      <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">
+        <img src="/icons/social/linkedin.svg" alt="" loading="lazy" />
+      </a>
+      <button
+        type="button"
+        class="share-inline__icon-button"
+        data-share-copy
+        data-share-url={url}
+        aria-label="Copy link to share"
+      >
+        <img src="/icons/social/link.svg" alt="" loading="lazy" />
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating TikTok-style FAB (opens our sheet) -->
+  <div class="company-share-fab-wrap">
+    <button
+      type="button"
+      class="company-share-fab"
+      data-share-fab
+      aria-label="Share this company"
+      data-share-title={title}
+      data-share-text={messageShort}
+      data-share-url={url}
+    >
+      <span class="company-share-fab-icon" aria-hidden="true">
+        <img src="/icons/social/share_arrow.svg" alt="" />
+      </span>
+    </button>
+  </div>
+
+  <!-- “Link copied” toast -->
+  <div class="company-share-toast" data-share-toast>
+    Link copied to clipboard
+  </div>
+
+  <!-- Backdrop + bottom sheet -->
+  <div class="share-overlay" data-share-overlay></div>
+
+  <div
+    class="share-sheet"
+    data-share-sheet
+    data-share-title={title}
+    data-share-text={messageShort}
+    data-share-url={url}
+  >
+    <header class="share-sheet__header">
+      <span class="share-sheet__title">Change happens when we share</span>
+      <button type="button" class="share-sheet__close" data-share-close aria-label="Close share options">
+        ✕
+      </button>
+    </header>
+
+
+    <a href="/creators" class="share-sheet__creators">
+      <span>Creator & Influencer Resources</span>
+      <small>Logos, overlays, & talking points</small>
+    </a>
+
+    <!-- Icon grid -->
+    <div class="share-sheet__grid" aria-label="Share options">
+      <!-- Row 1-ish: direct -->
+      <a href={smsUrl}>
+        <img src="/icons/social/sms.svg" alt="" />
+        <span>SMS / Text</span>
+      </a>
+
+      <button
+        type="button"
+        data-share-copy
+        data-share-url={url}
+      >
+        <img src="/icons/social/link.svg" alt="" />
+        <span>Copy link</span>
+      </button>
+
+      <a href={emailUrl}>
+        <img src="/icons/social/email.svg" alt="" />
+        <span>Email</span>
+      </a>
+
+      <a href={facebookUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/icons/social/facebook.svg" alt="" />
+        <span>Facebook</span>
+      </a>
+
+      <!-- Row 2+: socials including Bluesky, Signal, Discord -->
+      <a href={messengerUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/icons/social/fb_messenger.svg" alt="" />
+        <span>Messenger</span>
+      </a>
+
+      <a href={redditUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/icons/social/reddit.svg" alt="" />
+        <span>Reddit</span>
+      </a>
+
+      <a href={xUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/icons/social/x.svg" alt="" />
+        <span>X / Twitter</span>
+      </a>
+
+      <a href={blueskyUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/icons/social/bluesky.svg" alt="" />
+        <span>Bluesky</span>
+      </a>
+
+      <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/icons/social/linkedin.svg" alt="" />
+        <span>LinkedIn</span>
+      </a>
+
+      <!-- Signal: copy + deep link, fallback to Web Share -->
+      <button
+        type="button"
+        data-share-signal
+        data-share-url={url}
+      >
+        <img src="/icons/social/signal.svg" alt="" />
+        <span>Signal</span>
+      </button>
+
+      <!-- Discord: copy + deep link, fallback to Web Share -->
+      <button
+        type="button"
+        data-share-discord
+        data-share-url={url}
+      >
+        <img src="/icons/social/discord.svg" alt="" />
+        <span>Discord</span>
+      </button>
+
+
+  <button
+    type="button"
+    data-share-native
+  >
+    <img src="/icons/social/share_sheet.svg" alt="" />
+    <span>Share</span>
+  </button>
+
+
+
+
+    </div>
+  </div>
+
+
+
+  <script>
+    if (typeof window !== "undefined") {
+      window.addEventListener("DOMContentLoaded", () => {
+        const fab        = document.querySelector("[data-share-fab]");
+        const sheet      = document.querySelector("[data-share-sheet]");
+        const overlay    = document.querySelector("[data-share-overlay]");
+        const nativeBtns = document.querySelectorAll("[data-share-native]");
+        const copyBtns   = document.querySelectorAll("[data-share-copy]");
+        const signalBtns = document.querySelectorAll("[data-share-signal]");
+        const discordBtns= document.querySelectorAll("[data-share-discord]");
+        const closeBtns  = document.querySelectorAll("[data-share-close]");
+        const toast      = document.querySelector("[data-share-toast]");
+
+        if (!sheet) return;
+
+        const url   = sheet.getAttribute("data-share-url")   || window.location.href;
+        const title = sheet.getAttribute("data-share-title") || document.title;
+        const text  = sheet.getAttribute("data-share-text")  || "";
+
+        const isMobile = () =>
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+
+        const openSheet = () => {
+          sheet.classList.add("share-sheet--open");
+          if (overlay) overlay.classList.add("share-overlay--visible");
+        };
+
+        const closeSheet = () => {
+          sheet.classList.remove("share-sheet--open");
+          if (overlay) overlay.classList.remove("share-overlay--visible");
+        };
+
+        const showToast = () => {
+          if (!toast) return;
+          toast.classList.add("is-visible");
+          setTimeout(() => toast.classList.remove("is-visible"), 1800);
+        };
+
+        const copyToClipboard = async (value) => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(value);
+            } else {
+              const tmp = document.createElement("input");
+              tmp.value = value;
+              document.body.appendChild(tmp);
+              tmp.select();
+              document.execCommand("copy");
+              document.body.removeChild(tmp);
+            }
+            showToast();
+          } catch (e) {
+            console.warn("Clipboard write failed", e);
+          }
+        };
+
+        // Try deep link on mobile; if it seems to fail, fall back to Web Share
+        const deepLinkOrWebShare = (deepLinkUrl) => {
+          if (!isMobile()) {
+            // Desktop: just use Web Share if available, otherwise do nothing.
+            if (navigator.share) {
+              navigator.share({ title, text, url }).catch(() => {});
+            }
+            return;
+          }
+
+          const start = Date.now();
+          window.location.href = deepLinkUrl;
+
+          if (!navigator.share) return;
+
+          setTimeout(() => {
+            const elapsed = Date.now() - start;
+            // If we're still on the page and not much time elapsed,
+            // assume the deep link failed and fall back to Web Share.
+            if (document.visibilityState === "visible" && elapsed < 1500) {
+              navigator.share({ title, text, url }).catch(() => {});
+            }
+          }, 800);
+        };
+
+        // FAB: open custom sheet (TikTok-style)
+        if (fab) {
+          fab.addEventListener("click", () => {
+            openSheet();
+          });
+        }
+
+        if (overlay) overlay.addEventListener("click", closeSheet);
+        closeBtns.forEach((btn) => btn.addEventListener("click", closeSheet));
+
+        // Native share button inside sheet
+        nativeBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (!navigator.share) return;
+            navigator.share({ title, text, url }).catch(() => {});
+          });
+        });
+
+        // Copy-link buttons (inline + sheet)
+        copyBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetUrl = btn.getAttribute("data-share-url") || url;
+            copyToClipboard(targetUrl);
+          });
+        });
+
+        // Signal: copy + deep link, fallback to Web Share
+        signalBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetUrl = btn.getAttribute("data-share-url") || url;
+            copyToClipboard(targetUrl);
+            const deep = "sgnl://compose?text=" + encodeURIComponent(targetUrl);
+            deepLinkOrWebShare(deep);
+          });
+        });
+
+        // Discord: copy + deep link, fallback to Web Share
+        discordBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetUrl = btn.getAttribute("data-share-url") || url;
+            copyToClipboard(targetUrl);
+            const deep = "discord://";
+            deepLinkOrWebShare(deep);
+          });
+        });
+      });
+    }
+  </script>
+</section>

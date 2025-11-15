@@ -8,6 +8,9 @@ import CompanyHeader from "../../components/CompanyHeader.astro";
 import CompanyReasoning from "../../components/CompanyReasoning.astro";
 import CompanyContact from "../../components/CompanyContact.astro";
 import CompanySources from "../../components/CompanySources.astro";
+import CompanyShare from "../../components/CompanyShare.astro";
+
+import { resolveShareForCompany } from "../../lib/share";
 import "../../styles/company.css";
 
 export async function getStaticPaths() {
@@ -31,6 +34,7 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
+
 
 /* ---------- Fetch ---------- */
 const params = new URLSearchParams();
@@ -127,15 +131,91 @@ function textColorFor(bg: string) {
   return ((0.299 * r + 0.587 * g + 0.114 * b) / 255) > 0.6 ? "black" : "white";
 }
 
+// Build canonical URL for this page
+const pageUrl = new URL(`/company/${company.slug}/`, Astro.site).toString();
+
+// Resolved share payload (fallbacks + overrides)
+const share = resolveShareForCompany(company, pageUrl);
+
 /* ---------- Contact (dynamic zone) ---------- */
 const contactItems: any[] = Array.isArray(company.contact) ? company.contact : [];
 const socials = contactItems.filter((c) => c?.__component === "contact.social-profile");
+
+/* ---------- Share config (Strapi overrides + fallbacks) ---------- */
+
+// adjust this path to however you attached the component
+const shareSettings = company.ShareSettings || company.share_settings || {};
+
+const shareEnabled = shareSettings.Enable ?? true;
+
+// canonical URL for this company page
+const canonicalUrl =
+  shareSettings.link_override?.trim() ||
+  `https://bigbeautifulboycott.us/company/${company.slug}`;
+
+// base text fallbacks
+const baseTitle = `${company.name} – Big Beautiful Boycott`;
+const baseMessage =
+  shareSettings.message?.trim() ||
+  company.intro ||
+  company.about ||
+  `Learn more about ${company.name} on Big Beautiful Boycott.`;
+
+// shorter text for X / SMS, etc.
+const baseShort =
+  shareSettings.message_short?.trim() ||
+  `${company.name} on Big Beautiful Boycott`;
+
+const shareTitle = shareSettings.title?.trim() || baseTitle;
+const shareMessage = baseMessage;
+const shareMessageShort = baseShort;
+const shareHashtags = shareSettings.hashtags?.trim() || "BigBeautifulBoycott";
+
 ---
 
 <Base>
   <article class="company prose max-w-none">
     <!-- Header -->
     <CompanyHeader company={company} />
+
+    {shareEnabled && (
+      <CompanyShare
+        url={canonicalUrl}
+        title={shareTitle}
+        message={shareMessage}
+        messageShort={shareMessageShort}
+        hashtags={shareHashtags}
+      />
+    )}
+
+
+
+    {socials.length > 0 && (
+      <div>
+        <div class="company-social">
+          {socials.map((s) => {
+            const iconUrl = iconForPlatform(s.platform);
+            const label = s.label ?? s.platform;
+            const href = String(s.url || "").startsWith("http") ? s.url : `https://${s.url}`;
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="company-social-item"
+                data-gtm="company_outbound"
+                data-dest="website"
+                data-company-slug={company.slug}
+                data-company-name={company.name}
+              >
+                {iconUrl && <img src={iconUrl} alt={String(s.platform)} loading="lazy" />}
+                <span>{company.name} {label}</span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    )}
 
 
 
@@ -184,6 +264,7 @@ const socials = contactItems.filter((c) => c?.__component === "contact.social-pr
         </div>
       </section>
     )}
+
 
     {/* Sources at the bottom */}
     <CompanySources sources={sources} />
