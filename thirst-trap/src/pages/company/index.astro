@@ -5,16 +5,75 @@ import { strapi, unwrap } from "../../lib/strapi";
 import type { Company } from "../../types/company";
 
 const res = await strapi(
-  "/api/companies?publicationState=live&pagination[pageSize]=100&sort=name:asc"
-  + "&populate[logo][fields][0]=url"
-  + "&populate[category][fields][0]=name"
-  + "&populate[tags][fields][0]=name"
+  "/api/companies"
+    + "?publicationState=live"
+    + "&pagination[pageSize]=500"
+    + "&sort=name:asc"
+    + "&fields=name,slug,about,ticker,boycott_target"
+    + "&populate=logo"
+    + "&populate=sector"
+    + "&populate=Evaluation"
+    + "&populate=Evaluation.reasoning_tags"
+    + "&populate=week"
 );
-const companies = (unwrap<any[]>(res) ?? []) as Company[];
+
+const rawCompanies = (unwrap<any[]>(res) ?? []) as Company[];
+
+// --- helpers for week info ---
+function weekAttrs(c: Company) {
+  const wRaw: any =
+    (c as any)?.week?.data?.attributes ??
+    (c as any)?.week?.attributes ??
+    (c as any)?.week ??
+    null;
+  return wRaw || null;
+}
+
+function weekNumberOf(c: Company): number | null {
+  const w = weekAttrs(c);
+  const n = w?.week_number;
+  return typeof n === "number" ? n : null;
+}
+
+// Only show boycott_target=true (hide parent companies etc.)
+const companies = rawCompanies.filter(
+  (c) => (c as any)?.boycott_target === true
+);
+
+// Group by week number (null => "Unscheduled")
+const byWeek = new Map<number | null, Company[]>();
+
+for (const c of companies) {
+  const n = weekNumberOf(c); // number or null
+  const key: number | null = n ?? null;
+  const curr = byWeek.get(key) ?? [];
+  curr.push(c);
+  byWeek.set(key, curr);
+}
+
+// Sort weeks: 1,2,3,... then Unscheduled at the end
+const weekEntries = Array.from(byWeek.entries()).sort(([a], [b]) => {
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return a - b;
+});
 ---
+
 <Base>
-  <h1 class="text-3xl font-bold mb-4">All Companies</h1>
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {companies.map((c) => <CompanyCard company={c} />)}
-  </div>
+  <h1 class="text-3xl font-bold mb-6">All Companies</h1>
+
+  {weekEntries.map(([weekNum, list]) => (
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold mb-3">
+        {weekNum === null ? "Unscheduled companies" : `Week ${weekNum}`}
+      </h2>
+
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {list
+          .slice() // defensive copy in case we ever sort in-place
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((c) => <CompanyCard company={c} />)}
+      </div>
+    </section>
+  ))}
 </Base>

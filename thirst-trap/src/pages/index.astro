@@ -16,7 +16,45 @@ import StayInTouch from "../components/StayInTouch.astro";
 import "../styles/hero.css";
 import "../styles/company.css";
 
-/* Fetch: single grid (no category grouping) */
+/* ---------- Fetch home single type (for headings + FAQs) ---------- */
+const homeRes = await strapi(
+  "/api/home?populate=faqs"
+);
+const home = (unwrap<any>(homeRes) ?? {}) as any;
+
+const signupHeading: string =
+  home.signup_heading ||
+  "If they ban us, you’ll still have us.";
+
+const signupSubheading: string =
+  home.signup_subheading ||
+  "Stay connected to the movement — no algorithms, no gatekeepers, just us.";
+
+const faqHeading: string =
+  home.faq_heading ||
+  "What is the Big Beautiful Boycott?";
+
+const faqSubheading: string =
+  home.faq_subheading ||
+  "";
+
+// Normalize FAQ items: unwrap relation + sort by sortOrder if present
+const rawFaqs: any[] = Array.isArray(home.faqs?.data)
+  ? home.faqs.data
+  : Array.isArray(home.faqs)
+  ? home.faqs
+  : [];
+
+const faqs = rawFaqs
+  .map((f: any) => f?.attributes ?? f ?? {})
+  .filter((f: any) => f.Question && f.Answer)
+  .sort((a: any, b: any) => {
+    const sa = typeof a.sortOrder === "number" ? a.sortOrder : 9999;
+    const sb = typeof b.sortOrder === "number" ? b.sortOrder : 9999;
+    return sa - sb;
+  });
+
+/* ---------- Fetch all companies (+ week relation) ---------- */
 const res = await strapi(
   "/api/companies"
   + "?publicationState=live"
@@ -29,43 +67,86 @@ const res = await strapi(
   + "&populate=Evaluation.reasoning_tags"
   + "&populate=week"
 );
-const companies = (unwrap<any[]>(res) ?? []) as Company[];
 
-/* Helpers for filters */
-function catName(c: Company) {
-  return (
-    c?.category?.data?.attributes?.name ||
-    c?.category?.attributes?.name ||
-    c?.category?.name ||
-    "uncategorized"
-  );
-}
+const rawCompanies = (unwrap<any[]>(res) ?? []) as Company[];
+
+/* ---------- Helpers ---------- */
+
 function tagNames(c: Company): string[] {
-  return (c?.tags?.data ?? []).map((t: any) => t?.attributes?.name).filter(Boolean);
+  return (c?.tags?.data ?? [])
+    .map((t: any) => t?.attributes?.name)
+    .filter(Boolean);
 }
+
 function sentiment(c: Company): "good" | "bad" | "" {
-  const s = c?.Evaluation?.sentiment;
+  const s = (c as any)?.Evaluation?.sentiment;
   return s === "good" || s === "bad" ? s : "";
 }
 
-/* Build filter choices */
-const allCategories = [...new Set(companies.map(catName))].sort();
-const allTags = [...new Set(companies.flatMap(tagNames))].sort();
+// Week attributes helper (handles nested Strapi shapes)
+function weekAttrs(c: Company) {
+  const wRaw: any =
+    (c as any)?.week?.data?.attributes ??
+    (c as any)?.week?.attributes ??
+    (c as any)?.week ??
+    null;
+  return wRaw || null;
+}
+
+function weekNumberOf(c: Company): number | null {
+  const w = weekAttrs(c);
+  const n = w?.week_number;
+  return typeof n === "number" ? n : null;
+}
+
+function isVisibleCompany(c: Company): boolean {
+  const isTarget = (c as any)?.boycott_target === true;
+  if (!isTarget) return false;
+
+  const w = weekAttrs(c);
+  if (!w) return false;
+
+  const publishedAt = w?.publishedAt;
+  if (!publishedAt) return false;
+
+  const n = weekNumberOf(c);
+  return n !== null;
+}
+
+/* ---------- Filter + group by week ---------- */
+
+const companies = rawCompanies.filter(isVisibleCompany);
+
+const weekNumbers = companies
+  .map(weekNumberOf)
+  .filter((n): n is number => n !== null);
+
+const latestWeekNumber: number | null =
+  weekNumbers.length > 0 ? Math.max(...weekNumbers) : null;
+
+let latestWeekCompanies: Company[] = [];
+let otherCompanies: Company[] = [];
+
+if (latestWeekNumber !== null) {
+  latestWeekCompanies = companies
+    .filter((c) => weekNumberOf(c) === latestWeekNumber)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  otherCompanies = companies
+    .filter((c) => weekNumberOf(c) !== latestWeekNumber)
+    .sort((a, b) => {
+      const wa = weekNumberOf(a) ?? 0;
+      const wb = weekNumberOf(b) ?? 0;
+      if (wa !== wb) return wb - wa; // newer weeks first
+      return a.name.localeCompare(b.name);
+    });
+} else {
+  otherCompanies = companies.sort((a, b) => a.name.localeCompare(b.name));
+}
 ---
 
 <Base>
-  <!-- HERO: headline is now the page H1 for SEO/AT -->
-  <!-- <Hero
-    bg={heroBanner}
-    titleLines={["BIG", "BEAUTIFUL", "BOYCOTT"]}
-    subtitle="Every dollar counts."
-  >
-    <div slot="actions">
-      <a class="btn btn-primary" href="#grid">Browse companies</a>
-      <a class="btn" href="/how-to-boycott">How to boycott</a>
-    </div>
-  </Hero>-->
-  <!-- Full-width (within container) responsive header image -->
+  <!-- Header image (same as before) -->
   <figure class="mb-6 overflow-hidden rounded-2xl shadow-sm max-h-[400px]">
     <Image
       src={heroFix}
@@ -81,156 +162,169 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
     />
   </figure>
 
+  <!-- FAQ driven from Home.single -->
+  <Faq heading={faqHeading} subheading={faqSubheading} items={faqs} />
 
-  <Faq />
-
-  <StayInTouch />
+  <!-- Stay in touch driven from Home.single -->
+  <StayInTouch heading={signupHeading} subheading={signupSubheading} />
 
   <!-- Keep one H1 per page; this becomes H2 -->
   <h2 class="text-3xl font-bold mb-4">The Companies</h2>
 
-  <!-- Sticky, compact filter bar -->
-  <section id="filters" class="sticky top-0 z-20 backdrop-blur bg-base-100/90 border-b border-base-200">
+  <!-- Sticky, compact filter bar (search only) -->
+  <section
+    id="filters"
+    class="sticky top-0 z-20 backdrop-blur bg-base-100/90 border-b border-base-200"
+  >
     <div class="mx-auto max-w-7xl px-4 py-3">
-      <div id="filters-surface" class="rounded-2xl border border-base-300/70 bg-base-100/95 shadow-sm">
+      <div
+        id="filters-surface"
+        class="rounded-2xl border border-base-300/70 bg-base-100/95 shadow-sm"
+      >
         <div class="p-3 sm:p-4">
-          <!-- Single row, left-aligned; wraps gracefully on mobile -->
-          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-
-            <!-- Search (left, grows) -->
-            <label class="relative flex-1 min-w-[16rem]">
-              <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60"
-                   viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <!-- Search -->
+            <label class="relative w-full sm:flex-1">
+              <svg
+                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
+                />
               </svg>
-              <input id="q" type="search"
-                     placeholder="Search companies or categories…"
-                     class="input input-bordered input-sm w-full pl-9" />
+              <input
+                id="q"
+                type="search"
+                placeholder="Search companies…"
+                class="input input-bordered input-sm w-full pl-9 pr-3 h-10 sm:h-11"
+              />
             </label>
 
-            <!-- Category -->
-            <select id="cat" class="select select-bordered select-sm">
-              <option value="">All categories</option>
-              {allCategories.map((c) => <option value={c}>{c}</option>)}
-            </select>
-
-            <!-- Sort (only the four you asked for) -->
-            <select id="sort" class="select select-bordered select-sm">
-              <option value="name_asc">Name A–Z</option>
-              <option value="name_desc">Name Z–A</option>
-              <option value="cat_asc">Category A–Z</option>
-              <option value="cat_desc">Category Z–A</option>
-            </select>
-
             <!-- Count + Clear -->
-            <span id="count" class="badge badge-ghost ml-auto">0 results</span>
-            <button id="clear" type="button" class="btn btn-ghost btn-sm">Clear</button>
+            <div class="flex items-center justify-between sm:justify-end gap-2">
+              <span id="count" class="badge badge-ghost">0 companies</span>
+              <button
+                id="clear"
+                type="button"
+                class="btn btn-ghost btn-sm"
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- Latest week section -->
+  {latestWeekNumber !== null && latestWeekCompanies.length > 0 && (
+    <section class="mt-4 px-3">
+      <div class="mx-auto max-w-7xl">
+        <h3 class="text-xl font-semibold mb-1">
+          This week’s companies (Week {latestWeekNumber})
+        </h3>
+        <p class="text-sm text-base-content/70 mb-3">
+          The newest additions to the Big Beautiful Boycott.
+        </p>
 
-
-
-
-  <!-- Single grid of cards -->
-  <div id="grid" class="mt-4 grid gap-4 p-3 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]">
-
-    {companies.map((c) => {
-      const cat = catName(c);
-      const tags = tagNames(c);
-      const sent = sentiment(c);
-      return (
         <div
-          class="card-wrap contents"
-          data-name={c.name.toLowerCase()}
-          data-category={cat.toLowerCase()}
-          data-tags={tags.join("|").toLowerCase()}
-          data-sentiment={sent}
+          id="grid-latest"
+          class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]"
         >
-          <CompanyCard company={c} />
+          {latestWeekCompanies.map((c) => {
+            const tags = tagNames(c);
+            const sent = sentiment(c);
+            const weekNum = weekNumberOf(c);
+            return (
+              <div
+                class="card-wrap contents"
+                data-name={c.name.toLowerCase()}
+                data-tags={tags.join("|").toLowerCase()}
+                data-week={weekNum ?? ""}
+                data-sentiment={sent}
+              >
+                <CompanyCard company={c} />
+              </div>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
+      </div>
+    </section>
+  )}
 
-  <!-- Tiny filter/sort (framework-free) -->
+  <!-- Other weeks -->
+  <section class="mt-8 px-3">
+    <div class="mx-auto max-w-7xl">
+      {latestWeekNumber !== null && latestWeekCompanies.length > 0 && (
+        <h3 class="text-xl font-semibold mb-1">All earlier weeks</h3>
+      )}
+      <div
+        id="grid-rest"
+        class="mt-2 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]"
+      >
+        {otherCompanies.map((c) => {
+          const tags = tagNames(c);
+          const sent = sentiment(c);
+          const weekNum = weekNumberOf(c);
+          return (
+            <div
+              class="card-wrap contents"
+              data-name={c.name.toLowerCase()}
+              data-tags={tags.join("|").toLowerCase()}
+              data-week={weekNum ?? ""}
+              data-sentiment={sent}
+            >
+              <CompanyCard company={c} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- Tiny filter (no sort/categories) -->
   <script is:inline>
-    // ---------- tiny utils ----------
-    const $  = (s) => document.querySelector(s);
+    const $ = (s) => document.querySelector(s);
     const $$ = (s) => Array.from(document.querySelectorAll(s));
     const dl = (event, params = {}) => {
       (window.dataLayer = window.dataLayer || []).push({ event, ...params });
     };
 
-    // ---------- refs ----------
-    const iq = $("#q");         // search input
-    const ic = $("#cat");       // category select
-    const isort = $("#sort");   // sort select
+    const iq = $("#q");
     const ibar = $("#filters-surface");
     const btnClear = $("#clear");
     const badgeCount = $("#count");
-    const grid = $("#grid");
 
-    // ---------- sort ----------
-    function sortCards(mode = (isort?.value || "name_asc")) {
-      if (!grid) return;
-      const cards = Array.from(grid.children);
-      cards.sort((a, b) => {
-        const an = a.dataset.name || "";
-        const bn = b.dataset.name || "";
-        const ac = a.dataset.category || "";
-        const bc = b.dataset.category || "";
-        const as = a.dataset.sentiment || "";
-        const bs = b.dataset.sentiment || "";
-        switch (mode) {
-          case "cat_asc": {
-            const byCat = ac.localeCompare(bc);
-            return byCat || an.localeCompare(bn);
-          }
-          case "sent_bad_first": {
-            const rank = (s) => (s === "bad" ? 0 : s === "good" ? 1 : 2);
-            const bySent = rank(as) - rank(bs);
-            return bySent || an.localeCompare(bn);
-          }
-          case "name_asc":
-          default:
-            return an.localeCompare(bn);
-        }
-      });
-      cards.forEach((c) => grid.appendChild(c));
-    }
-
-    // ---------- filters/search + analytics ----------
     function applyFilters() {
       const q = (iq?.value || "").trim().toLowerCase();
-      const cat = (ic?.value || "").toLowerCase();
       let visible = 0;
 
       for (const el of $$(".card-wrap")) {
         const name = (el.dataset.name || "").toLowerCase();
-        const category = (el.dataset.category || "").toLowerCase();
         const tags = (el.dataset.tags || "").toLowerCase();
+        const week = (el.dataset.week || "").toString().toLowerCase();
 
-        const matchesQ = !q || name.includes(q) || category.includes(q) || tags.includes(q);
-        const matchesCat = !cat || category === cat;
-        const show = matchesQ && matchesCat;
+        const matchesQ =
+          !q ||
+          name.includes(q) ||
+          tags.includes(q) ||
+          week.includes(q);
 
-        el.classList.toggle("hidden", !show);
-        if (show) visible++;
+        el.classList.toggle("hidden", !matchesQ);
+        if (matchesQ) visible++;
       }
 
-      // UI: count badge
       if (badgeCount) {
-        badgeCount.textContent = `${visible} result${visible === 1 ? "" : "s"}`;
+        badgeCount.textContent =
+          visible === 1 ? "1 company" : `${visible} companies`;
       }
 
-      // Analytics: fire both filter + (if present) search events
       dl("filter_apply", {
-        category: ic?.value || "(all)",
-        sort: isort?.value || "(default)",
+        search_term: q || "(none)",
         total_visible: visible,
       });
 
@@ -242,46 +336,29 @@ const allTags = [...new Set(companies.flatMap(tagNames))].sort();
       }
     }
 
-    // ---------- sticky bar shadow ----------
     function updateBarShadow() {
       if (!ibar) return;
       if (window.scrollY > 8) ibar.classList.add("shadow-md");
       else ibar.classList.remove("shadow-md");
     }
 
-    // ---------- debounce helper ----------
     let t = 0;
     const debounced = (fn, ms = 150) => () => {
       clearTimeout(t);
       t = setTimeout(fn, ms);
     };
 
-    // ---------- listeners ----------
     if (iq) iq.addEventListener("input", debounced(applyFilters));
-    if (ic) ic.addEventListener("change", applyFilters);
-    if (isort) isort.addEventListener("change", () => {
-      sortCards(isort.value);
-      // Re-emit filter_apply with updated sort context + current visible count
-      // (applyFilters also emits, but keep this snappy when sort alone changes)
-      const visibleNow = $$(".card-wrap:not(.hidden)").length;
-      dl("filter_apply", {
-        category: ic?.value || "(all)",
-        sort: isort?.value || "(default)",
-        total_visible: visibleNow,
+    if (btnClear)
+      btnClear.addEventListener("click", () => {
+        if (iq) iq.value = "";
+        applyFilters();
       });
-    });
-    if (btnClear) btnClear.addEventListener("click", () => {
-      if (iq) iq.value = "";
-      if (ic) ic.value = "";
-      applyFilters();
-    });
 
     window.addEventListener("scroll", updateBarShadow, { passive: true });
 
-    // ---------- initial paint ----------
-    applyFilters();                 // filters + analytics for initial state
-    sortCards(isort?.value);        // sort once after initial filter
+    // initial state
+    applyFilters();
     updateBarShadow();
   </script>
-
 </Base>
