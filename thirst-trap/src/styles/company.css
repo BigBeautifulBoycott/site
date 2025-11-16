@@ -1,27 +1,56 @@
-/* src/styles/company.css */
+/* ------------------------------------------------------------------
+ * Brand tokens – pulled from daisyUI theme (primary, primary-focus)
+ * ------------------------------------------------------------------ */
 
-/* ---- Company page wrapper ---- */
-.company {}
+.company {
+  /* Color tokens fallback if theme vars aren't found */
+  --bbb-link: hsl(var(--p, 248 83% 60%));        /* primary */
+  --bbb-link-hover: hsl(var(--pf, 248 83% 52%)); /* primary focus */
+  --bbb-border: hsl(var(--b3, 220 14% 90%));
+  --bbb-border-dark: #2a2a2a;
+}
 
-/* Typography (scoped “prose”) */
-.company .prose { line-height: 1.7; }
-.company .prose p { margin: .75rem 0; }
+/* ------------------------------------------------------------------
+ * Base typography
+ * ------------------------------------------------------------------ */
+
+.company .prose {
+  line-height: 1.7;
+}
+
+.company .prose p {
+  margin: .75rem 0;
+}
 
 .company .prose h1,
 .company .prose h2,
-.company .prose h3 { line-height: 1.25; margin: 1.1rem 0 .5rem; font-weight: 700; }
+.company .prose h3 {
+  line-height: 1.25;
+  margin: 1.1rem 0 .5rem;
+  font-weight: 700;
+}
 
 .company .prose h4,
 .company .prose h5,
-.company .prose h6 { margin: .9rem 0 .4rem; font-weight: 600; }
+.company .prose h6 {
+  margin: .9rem 0 .4rem;
+  font-weight: 600;
+}
 
 .company .prose ul,
-.company .prose ol { margin: .75rem 0; padding-left: 1.25rem; }
+.company .prose ol {
+  margin: .75rem 0;
+  padding-left: 1.25rem;
+}
+
 .company .prose ul { list-style: disc; }
 .company .prose ol { list-style: decimal; }
-.company .prose li { margin: .25rem 0; }
 
-/* Clean quote (no background box) */
+.company .prose li {
+  margin: .25rem 0;
+}
+
+/* Blockquote */
 .company .prose blockquote {
   margin: 1rem 0;
   padding-left: .75rem;
@@ -29,114 +58,57 @@
   color: inherit;
 }
 
-/* Inline elements */
-.company .prose a { text-decoration: underline; text-underline-offset: 2px; }
-.company .prose strong { font-weight: 600; }
-.company .prose em { font-style: italic; }
+/* ------------------------------------------------------------------
+ * Inline elements (LINKS, bold, italics)
+ * ------------------------------------------------------------------ */
 
-/* Tidy empties Strapi sometimes emits */
+.company .prose a,
+.company .reasoning-sources a {
+  color: var(--bbb-link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  transition: color .15s ease, text-decoration-thickness .15s ease;
+}
+
+.company .prose a:hover,
+.company .reasoning-sources a:hover {
+  color: var(--bbb-link-hover);
+  text-decoration-thickness: 2px;
+}
+
+.company .prose strong {
+  font-weight: 600;
+}
+
+.company .prose em {
+  font-style: italic;
+}
+
+/* Clean stray CKEditor empties */
 .company .prose p:empty { display: none; }
 .company .prose p > br:only-child { display: none; }
 
-/* (Optional) header tweaks, safe + scoped */
+/* Optional header logo */
 .company .header__logo { height: 64px; width: 64px; }
 @media (min-width: 768px) {
   .company .header__logo { height: 80px; width: 80px; }
 }
 
+/* ------------------------------------------------------------------
+ * Social links
+ * ------------------------------------------------------------------ */
 
-/* --- Social links (works with your existing markup) --- */
-/* target the exact socials row you already render */
-.company .flex.flex-wrap.gap-3 {
-  gap: .5rem;                 /* a bit tighter */
-  align-items: stretch;       /* equal pill heights */
-}
-
-/* make each pill consistent size and layout */
-.company .flex.flex-wrap.gap-3 > a {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  height: 40px;               /* uniform height */
-  padding: 0 .75rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: var(--card, #fff);
-  text-decoration: none;
-  line-height: 1;
-  /* responsive width without changing to grid */
-  flex: 1 1 180px;            /* wrap nicely; consistent widths */
-}
-
-@media (min-width: 768px) {
-  .company .flex.flex-wrap.gap-3 > a { flex: 0 1 220px; }
-}
-
-/* icon size stays consistent even if the source SVG/PNG varies */
-.company .flex.flex-wrap.gap-3 > a img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  flex: 0 0 18px;
-}
-
-/* label stays on one line, trims cleanly if long */
-.company .flex.flex-wrap.gap-3 > a span {
-  font-size: .95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* hover/focus polish */
-.company .flex.flex-wrap.gap-3 > a:hover { background: var(--hover, #f7f7f7); }
-.company .flex.flex-wrap.gap-3 > a:active { transform: translateY(.5px); }
-.company .flex.flex-wrap.gap-3 > a:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
-}
-
-/* dark mode */
-@media (prefers-color-scheme: dark) {
-  .company .flex.flex-wrap.gap-3 > a {
-    border-color: #2a2a2a;
-    background: #111318;
-  }
-  .company .flex.flex-wrap.gap-3 > a:hover { background: #151820; }
-}
-
-
-/* --- Social Links (tight & button-like) --- */
-/* container */
 .company-social {
   display: flex;
   flex-wrap: wrap;
-  justify-content: left;   /* <-- center them */
-  align-items: center;       /* keep vertical alignment */
-  gap: 0.6rem;               /* clean spacing */
+  justify-content: left;
+  align-items: center;
+  gap: 0.6rem;
   margin-top: 1.25rem;
 }
 
-.company-social a {
-  border-radius: 8px;
-  padding: 0.35rem 0.7rem;
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.company-social a:hover {
-  background: #f6f6f6;
-}
-
-@media (prefers-color-scheme: dark) {
-  .company-social a:hover {
-    background: #262626;
-  }
-}
-
-/* each link */
 .company-social-item {
   display: inline-flex;
   align-items: center;
@@ -144,11 +116,10 @@
   padding: 0.35rem 0.65rem;
   border: 1px solid #dcdcdc;
   border-radius: 6px;
-  font-size: 0.95rem;
   background: transparent;
   text-decoration: none;
   color: inherit;
-  line-height: 1;
+  font-size: 0.95rem;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -157,212 +128,858 @@
   border-color: #cfcfcf;
 }
 
-/* icon sizing */
 .company-social-item img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* Mobile stacking */
+@media (max-width: 640px) {
+  .company-social {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+  .company-social-item {
+    width: 100%;
+    justify-content: center;
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 360px) {
+  .company-social {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Contact Section
+ * ------------------------------------------------------------------ */
+
+.company .contact h2 { margin-bottom: .25rem; }
+.company .contact .contact-group { display: grid; gap: 1.25rem; }
+.company .contact .contact-subgroup h3 { margin: 0 0 .5rem; }
+
+.company .contact .contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .5rem;
+}
+
+.company .contact .contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--bbb-border);
+  border-radius: .5rem;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+  line-height: 1.2;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.company .contact .contact-link:hover { background: #f7f7f7; }
+
+.company .contact .contact-label { font-weight: 600; }
+.company .contact .contact-domain { opacity: .8; }
+.company .contact .contact-note { margin-left: .35rem; opacity: .75; }
+
+@media (prefers-color-scheme: dark) {
+  .company .contact .contact-link { border-color: var(--bbb-border-dark); }
+  .company .contact .contact-link:hover { background: #151820; }
+}
+
+/* Addresses (no pills) */
+.company .contact .contact-list--addr .contact-address {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* ------------------------------------------------------------------
+ * Reasoning / Evidence
+ * ------------------------------------------------------------------ */
+
+.reasoning-block + .reasoning-block {
+  margin-top: 2rem;
+}
+
+.reasoning-sources {
+  font-size: 0.875rem;
+  padding-left: 1.25rem;
+  margin-top: .5rem;
+}
+
+.reasoning-sources li {
+  list-style-type: decimal;
+}
+
+.reasoning-source-meta {
+  color: #6b7280;
+  font-style: italic;
+}
+
+
+.company .contact .contact-link--social .contact-social-icon {
   width: 18px;
   height: 18px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
-/* label */
-.company-social-item span {
-  white-space: nowrap;
+/* ------------------------------------------------------------------
+ * Contact section – cleaner desktop + mobile layout
+ * ------------------------------------------------------------------ */
+
+.company .contact {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--bbb-border);
 }
 
-/* --- Even stacking on mobile --- */
-@media (max-width: 640px) {            /* phones */
-  .company-social {
-    display: grid;                      /* override the flex */
-    grid-template-columns: repeat(2, minmax(0, 1fr));  /* 2 equal columns */
-    gap: 0.6rem;
+/* Intro text under "Contact" */
+.company .contact-intro {
+  margin-top: 0.25rem;
+  margin-bottom: 1.75rem;
+  max-width: 40rem;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+@media (prefers-color-scheme: dark) {
+  .company .contact-intro {
+    color: #9ca3af;
   }
-  .company-social a,
-  .company-social .company-social-item {
-    width: 100%;                        /* fill each cell */
-    justify-content: center;            /* nice balance */
-    min-height: 38px;                   /* consistent hit area */
+}
+
+/* Layout: 1 column on mobile, 2 cards side-by-side on desktop */
+.company .contact-group {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .company .contact-group {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: flex-start;
   }
 }
 
-/* super-narrow screens */
-@media (max-width: 360px) {
-  .company-social { grid-template-columns: 1fr; }      /* 1 per row */
+/* Each section (Websites / Phone / Email / Addresses / Social) */
+.company .contact-subgroup {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--bbb-border);
+  background: #ffffff;
 }
 
-/* --- Contact section polish (websites / email / phone) --- */
-.company .contact h3 {
-  margin-bottom: .5rem;
+@media (prefers-color-scheme: dark) {
+  .company .contact-subgroup {
+    background: #020617;
+    border-color: var(--bbb-border-dark);
+  }
 }
 
-/* grid lists instead of vertical stacks */
+/* Sub-headings */
+.company .contact-subgroup h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+/* Lists inside each subgroup */
 .company .contact .contact-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: .5rem .65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-/* pill-like ghost links */
+/* Contact “pills” */
 .company .contact .contact-link {
   display: inline-flex;
   align-items: center;
-  gap: .45rem;
-  padding: .45rem .65rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: transparent;
+  gap: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--bbb-border);
+  background: #f9fafb;
   text-decoration: none;
   color: inherit;
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background .15s ease, border-color .15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
 }
 
-/* subtle arrow cue */
-.company .contact .contact-link::after {
-  content: "↗";
-  opacity: .55;
-  font-size: .9em;
-  margin-left: .15rem;
+.company .contact .contact-link:hover {
+  background: #eef2ff;
+  border-color: var(--bbb-link);
+  transform: translateY(-0.5px);
 }
 
-/* hover/focus */
-.company .contact .contact-link:hover { background: #f7f7f7; }
-.company .contact .contact-link:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+/* Label + value inside the pill */
+.company .contact .contact-label {
+  font-weight: 600;
 }
 
-/* notes after links (e.g., — Headquarters) */
-.company .contact .contact-list li > span {
-  margin-left: .35rem;
-  opacity: .75;
-  font-size: .9rem;
+.company .contact .contact-domain {
+  opacity: 0.85;
 }
 
-/* dark mode */
+/* Extra note to the right, e.g. “— Headquarters” */
+.company .contact .contact-note {
+  display: inline-block;
+  margin-left: 0.35rem;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+/* Addresses: let them breathe but no pill */
+.company .contact .contact-list--addr .contact-address {
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.company .contact .addr-type {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.company .contact .addr-lines {
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.company .contact .addr-note {
+  margin-top: 0.15rem;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+/* Social list inside contact (if you keep it there) */
+.company .contact .contact-list--social {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+}
+
+.company .contact .contact-list--social .contact-link {
+  background: #ffffff;
+}
+
 @media (prefers-color-scheme: dark) {
-  .company .contact .contact-link { border-color: #2a2a2a; }
-  .company .contact .contact-link:hover { background: #151820; }
-}
+  .company .contact .contact-link {
+    background: #020617;
+    border-color: var(--bbb-border-dark);
+  }
 
-/* --- Address cards: keep your structure, just unify look --- */
-.company .contact .not-prose li {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
-  background: var(--card, #fff);
-}
-
-@media (prefers-color-scheme: dark) {
-  .company .contact .not-prose li {
-    border-color: #2a2a2a;
-    background: #111318;
+  .company .contact .contact-link:hover {
+    background: #0b1120;
   }
 }
 
-/* Contact list grid */
-.company .contact .contact-list{
-  list-style:none;margin:0;padding:0;
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:.55rem .7rem;
+/* =========================================
+ * Contact – mobile polish
+ * =======================================*/
+
+@media (max-width: 640px) {
+  /* More breathing room between cards */
+  .company .contact .contact-group {
+    gap: 1rem;
+  }
+
+  /* Softer, less cramped cards */
+  .company .contact .contact-subgroup {
+    padding: 0.9rem 1rem;
+    border-radius: 0.9rem;
+  }
+
+  /* Tighten section headings a bit */
+  .company .contact h2 {
+    margin-bottom: 0.5rem;
+  }
+
+  .company .contact h3 {
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.45rem;
+  }
+
+  /* Slightly smaller pills so they don’t feel jammed */
+  .company .contact .contact-link {
+    padding: 0.4rem 0.6rem;
+    gap: 0.4rem;
+  }
+
+  .company .contact .contact-label {
+    font-size: 0.9rem;
+  }
+
+  .company .contact .contact-domain {
+    font-size: 0.9rem;
+  }
 }
 
-/* Pill-like links with optional meta (domain / email / phone) */
-.company .contact .contact-link{
-  display:inline-flex;align-items:center;gap:.5rem;
-  padding:.45rem .65rem;border:1px solid var(--border,#e5e7eb);
-  border-radius:.5rem;background:transparent;text-decoration:none;color:inherit;
-  line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:background .15s ease,border-color .15s ease;
-}
-.company .contact .contact-link__label{font-weight:600;}
-.company .contact .contact-link__meta{opacity:.75;font-size:.92rem;}
 
-/* External arrow only on website links */
-.company .contact .contact-link--external::after{
-  content:"↗";opacity:.55;font-size:.9em;margin-left:.15rem;
+/* ============================================================
+   Share: inline row + mobile FAB + bottom sheet
+   ============================================================ */
+
+.share-block {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Hover/focus */
-.company .contact .contact-link:hover{background:#f7f7f7;}
-.company .contact .contact-link:focus-visible{outline:2px solid #2563eb;outline-offset:2px;}
-
-@media (prefers-color-scheme:dark){
-  .company .contact .contact-link{border-color:#2a2a2a;}
-  .company .contact .contact-link:hover{background:#151820;}
+.share-block--bottom {
+  margin-top: 2.5rem;
 }
 
-/* Addresses: no boxes */
-.company .contact .contact-list--addresses .address-item{
-  padding:0;border:none;background:transparent;border-radius:0;
+/* Inline row */
+
+.share-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #4b5563;
 }
 
-/* Contact layout */
-.company .contact h2 { margin-bottom: .25rem; }
-.company .contact .contact-group { display: grid; gap: 1.25rem; }
-.company .contact .contact-subgroup h3 { margin: 0 0 .5rem; }
-
-/* Lists */
-.company .contact .contact-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: .5rem;              /* vertical stack */
+.share-inline__label {
+  font-weight: 600;
 }
 
-/* Websites: always stack (optionally go 2-col at ≥768px if you want) */
-/* .company .contact .contact-list--web { grid-template-columns: 1fr; } */
+.share-inline__icons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-/* Link pill */
-.company .contact .contact-link {
+.share-inline__icons a,
+.share-inline__icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
   display: inline-flex;
   align-items: center;
-  gap: .5rem;
-  padding: .45rem .65rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: .5rem;
+  justify-content: center;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.share-inline__icons img,
+.share-inline__icon-button img {
+  width: 16px;
+  height: 16px;
+}
+
+.share-inline__icons a:hover,
+.share-inline__icon-button:hover {
+  background: #f3f4f6;
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+/* FAB (mobile only) */
+
+.company-share-fab-wrap {
+  position: fixed;
+  inset-block-end: 1.5rem;
+  inset-inline-end: 1.25rem;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.company-share-fab {
+  pointer-events: auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 9999px;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bbb-link);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+.company-share-fab-icon img {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+.company-share-fab:hover,
+.company-share-fab:focus-visible {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.3),
+              0 4px 8px rgba(15, 23, 42, 0.2);
+  outline: none;
+}
+
+.company-share-fab:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22),
+              0 2px 4px rgba(15, 23, 42, 0.18);
+}
+
+@media (min-width: 768px) {
+  .company-share-fab-wrap {
+    display: none; /* desktop: just use inline row */
+  }
+}
+
+/* Bottom sheet & overlay */
+
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 59;
+}
+
+.share-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.share-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100%;
+  max-height: 80vh;
+  background: #ffffff;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.2);
+  padding: 0.9rem 1.1rem 1.2rem;
+  transition: bottom 0.22s ease;
+  z-index: 60;
+  font-size: 0.9rem;
+}
+
+.share-sheet--open {
+  bottom: 0;
+}
+
+.share-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.share-sheet__title {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.share-sheet__close {
+  border: none;
   background: transparent;
-  text-decoration: none;
-  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.share-sheet__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Native share button */
+
+.share-sheet__native {
+  width: 100%;
+  text-align: left;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.8rem;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.share-sheet__native span {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.share-sheet__native small {
+  display: block;
+  font-size: 0.76rem;
+  color: #6b7280;
+}
+
+/* Icon grid */
+
+.share-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem 0.3rem;
+}
+
+.share-sheet__grid a,
+.share-sheet__grid button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.share-sheet__grid img {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 0.4rem;
+  background: #ffffff;
+}
+
+/* Toast */
+
+.company-share-toast {
+  position: fixed;
+  inset-block-end: 4.5rem;
+  inset-inline-end: 1.25rem;
+  z-index: 61;
+  background: rgba(15, 23, 42, 0.94);
+  color: #f9fafb;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.825rem;
   line-height: 1.2;
-  transition: background .15s ease, border-color .15s ease;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
 }
 
-/* Label + value */
-.company .contact .contact-label { font-weight: 600; }
-.company .contact .contact-domain { opacity: .8; }
-
-/* External cue on website links only */
-.company .contact .contact-list--web .contact-link::after {
-  content: "↗";
-  opacity: .6;
-  font-size: .9em;
-  margin-left: .15rem;
+.company-share-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Notes */
-.company .contact .contact-note { margin-left: .35rem; opacity: .75; }
+/* Hide sheet/overlay on desktop – inline row is enough */
 
-/* Addresses: no box */
-.company .contact .contact-list--addr .contact-address {
-  border: 0; background: transparent; padding: 0; border-radius: 0;
+@media (min-width: 768px) {
+  .share-sheet,
+  .share-overlay {
+    display: none;
+  }
 }
-.company .contact .addr-type { font-weight: 600; margin-bottom: .1rem; }
-.company .contact .addr-lines { font-size: .95rem; line-height: 1.35; }
-.company .contact .addr-note { margin-top: .15rem; opacity: .75; font-size: .9rem; }
+/* Floating share FAB -------------------------------------------------- */
 
-/* Hover */
-.company .contact .contact-link:hover { background: #f7f7f7; }
-.company .contact .contact-link:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.company-share-fab-wrap {
+  position: fixed;
+  inset-block-end: 1.5rem;   /* bottom */
+  inset-inline-end: 1.25rem; /* right */
+  z-index: 60;
+  pointer-events: none;      /* wrapper doesn't block clicks */
+}
 
-/* Dark mode */
+.company-share-fab {
+  pointer-events: auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* white pill with brand ring so TikTok logo pops */
+  background: #ffffff;
+  color: #000;
+  cursor: pointer;
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, 0.28),
+    0 3px 6px rgba(15, 23, 42, 0.18);
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
+
+/* add a subtle brand ring around it */
+.company-share-fab::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid var(--bbb-link);
+  pointer-events: none;
+}
+
+.company-share-fab:hover,
+.company-share-fab:focus-visible {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow:
+    0 18px 36px rgba(15, 23, 42, 0.3),
+    0 4px 8px rgba(15, 23, 42, 0.2);
+  outline: none;
+}
+
+.company-share-fab:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.22),
+    0 2px 4px rgba(15, 23, 42, 0.18);
+}
+
+.company-share-fab-icon img {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+/* Hide FAB on larger screens if you only want it mobile */
+@media (min-width: 768px) {
+  .company-share-fab-wrap {
+    display: none;
+  }
+}
+
+
+.share-sheet__creators {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  width: 100%;
+  padding: 0.75rem 1rem;
+
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+
+  background: #ffffff;
+  text-decoration: none;
+
+  margin-bottom: 1rem;
+
+  /* Typography */
+  color: #111827;
+}
+
+.share-sheet__creators span {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.share-sheet__creators small {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+/* Optional hover effect */
+.share-sheet__creators:hover {
+  background: #f3f4f6;
+  border-color: rgba(148, 163, 184, 0.7);
+}
+
+/* ============================
+   How-to actions
+   ============================ */
+
+.company-actions {
+  margin-top: 2.5rem;
+}
+
+.company-actions__heading {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.company-actions__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card */
+.company-action {
+  border-radius: 0.85rem;
+  border: 1px solid var(--bbb-border, #e5e7eb);
+  background: #ffffff;
+  padding: 0.7rem 0.85rem;
+}
+
 @media (prefers-color-scheme: dark) {
-  .company .contact .contact-link { border-color: #2a2a2a; }
-  .company .contact .contact-link:hover { background: #151820; }
+  .company-action {
+    background: #020617;
+    border-color: var(--bbb-border-dark, #1f2933);
+  }
+}
+
+/* Toggle is used only on mobile */
+.company-action__toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Header row */
+.company-action__header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.company-action__emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.company-action__title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  flex: 1 1 auto;
+}
+
+/* Type chip */
+.company-action__chip {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.company-action__chip--note {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.company-action__chip--yes {
+  background: #ecfdf3;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.company-action__chip--maybe {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fed7aa;
+}
+
+.company-action__chip--no {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* Body text */
+.company-action__body {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.company-action__description {
+  margin: 0;
+}
+
+.company-action__parent {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Mobile: collapse body by default, tap to expand */
+@media (max-width: 640px) {
+  .company-action__header {
+    cursor: pointer;
+  }
+
+  .company-action__body {
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    transition: max-height 0.2s ease, padding-top 0.2s ease;
+  }
+
+  .company-action__toggle:checked + .company-action__header + .company-action__body {
+    max-height: 500px; /* enough for our text */
+    padding-top: 0.35rem;
+  }
+}
+
+/* Desktop: always open, no accordion behaviour */
+@media (min-width: 641px) {
+  .company-action__body {
+    max-height: none;
+    padding-top: 0.4rem;
+  }
+
+  .company-action__toggle {
+    display: none;
+  }
+}
+
+/* TEMP: force light-mode styling on company pages */
+@media (prefers-color-scheme: dark) {
+  .company .contact-subgroup {
+    background: #ffffff;
+    border-color: var(--bbb-border, #e5e7eb);
+  }
+
+  .company .contact .contact-link {
+    background: #f9fafb;
+    border-color: var(--bbb-border, #e5e7eb);
+  }
+
+  .company .contact-intro {
+    color: #4b5563;
+  }
+
+  .company-action {
+    background: #ffffff;
+    border-color: var(--bbb-border, #e5e7eb);
+  }
 }

@@ -1,0 +1,41 @@
+---
+export interface Props {
+  sources?: any[];
+}
+
+const sources = Array.isArray(Astro.props.sources) ? Astro.props.sources : [];
+---
+
+{sources.length > 0 && (
+  <section class="mt-10" id="sources">
+    <h2>Sources</h2>
+    <ol class="mt-2 space-y-1 reasoning-sources">
+      {sources.map((src, idx) => {
+        const title = src.title || src.publisher || src.url;
+        const url = src.url;
+        const publisher = src.publisher;
+
+        return (
+          <li>
+            {url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {title}
+              </a>
+            ) : (
+              <span>{title}</span>
+            )}
+            {publisher && (
+              <span class="reasoning-source-meta">
+                {" "}— {publisher}
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+)}

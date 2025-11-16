@@ -1,16 +1,22 @@
 ---
+// src/pages/company/[slug].astro
+
 import Base from "../../layouts/Base.astro";
 import { strapi, unwrap, mediaUrl } from "../../lib/strapi";
-import { renderBlocks } from "../../lib/blocks";
 import { iconForPlatform } from "../../lib/socialIcons";
 import CompanyHeader from "../../components/CompanyHeader.astro";
+import CompanyReasoning from "../../components/CompanyReasoning.astro";
+import CompanyContact from "../../components/CompanyContact.astro";
+import CompanySources from "../../components/CompanySources.astro";
+import CompanyShare from "../../components/CompanyShare.astro";
+import CompanyActionItems from "../../components/CompanyActionItems.astro";
+
 import "../../styles/company.css";
 
 export async function getStaticPaths() {
-  // fetch only slugs, with pagination safety
   const pageSize = 100;
   let page = 1;
-  let paths = [];
+  let paths: { params: { slug: string } }[] = [];
 
   while (true) {
     const res = await strapi(
@@ -29,16 +35,31 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 
-/* Fetch – now including the "contact" dynamic zone */
+/* ---------- Fetch ---------- */
 const params = new URLSearchParams();
 params.set("publicationState", "live");
 params.set("filters[slug][$eq]", String(slug ?? ""));
-params.set("fields", "name,slug,about,how_to_boycott,Reasoning");
-params.set("populate", "logo,category,tags,Evaluation,contact");
-params.set("populate[Evaluation][populate]", "reasoning_tags");
-params.set("populate[Evaluation][populate][reasoning_tags][fields]", "name,slug,color");
-params.set("populate[logo][fields]", "url,alternativeText,formats");
-params.set("populate[contact][populate]", "*");
+
+// include new intro + keep about as short text
+params.set("fields", "name,slug,about,intro,ticker,boycott_target");
+
+// multiple populate keys
+[
+  "logo",
+  "sector",
+  "Evaluation",
+  "Evaluation.reasoning_tags",
+  "contact",
+  "Reasoning",
+  "Reasoning.Source",
+  "ActionItems",
+
+  // parent chain (only parent_company exists)
+  "parent_company",
+  "parent_company.Reasoning",
+  "parent_company.Reasoning.Source",
+  "parent_company.ActionItems",
+].forEach((key) => params.append("populate", key));
 
 const res = await strapi(`/api/companies?${params.toString()}`);
 const arr = unwrap<any[]>(res) ?? [];
@@ -58,22 +79,66 @@ const srcMedium = logoFormats?.small?.url ? mediaUrl(logoFormats.small.url) : ""
 const logoAlt = logoNode?.alternativeText ?? `${company.name} logo`;
 
 const srcSet = [srcSmall && `${srcSmall} 156w`, srcMedium && `${srcMedium} 500w`, src && `${src} 779w`]
-  .filter(Boolean).join(", ");
+  .filter(Boolean)
+  .join(", ");
 
-/* ---------- Meta ---------- */
-const category =
-  company?.category?.name ??
-  company?.category?.data?.attributes?.name ??
-  null;
 
-const tags = (company?.tags?.data ?? [])
-  .map((t: any) => t?.attributes?.name ?? t?.name)
-  .filter(Boolean);
 
 /* ---------- Content ---------- */
-const about = company.about;
-const howTo = company.how_to_boycott;
-const reasoning = company.Reasoning;
+const about: string | undefined = company.about;
+const introHtml: string | undefined = company.intro;
+const actions: any[] = Array.isArray(company.ActionItems) ? company.ActionItems : [];
+
+/* ---------- Reasoning + Sources (company) ---------- */
+const reasoningBlock: any | null = company.Reasoning ?? null;
+const reasoningHtml: string = reasoningBlock?.content || "";
+const sources: any[] = Array.isArray(reasoningBlock?.Source) ? reasoningBlock.Source : [];
+
+/* ---------- Parent company reasoning + actions ---------- */
+
+const parentCompanyRaw: any[] =
+  Array.isArray(company.parent_company?.data)
+    ? company.parent_company.data
+    : Array.isArray(company.parent_company)
+    ? company.parent_company
+    : [];
+
+// Reasoning blocks
+const parentReasonBlocks = parentCompanyRaw
+  .map((node: any) => {
+    const attrs = node?.attributes ?? node ?? {};
+    const block = attrs.Reasoning ?? null;
+    const html = block?.content || "";
+    const srcs: any[] = Array.isArray(block?.Source) ? block.Source : [];
+
+    return {
+      name: attrs.name ?? "",
+      slug: attrs.slug ?? "",
+      reasoningHtml: html,
+      sources: srcs,
+    };
+  })
+  .filter((p) => p.reasoningHtml && p.reasoningHtml.trim().length > 0);
+
+// Parent action items – grouped by parent company
+const parentActions = parentCompanyRaw
+  .map((node: any) => {
+    const attrs = node?.attributes ?? node ?? {};
+    const parentName = attrs.name ?? "";
+    const list: any[] = Array.isArray(attrs.ActionItems) ? attrs.ActionItems : [];
+
+    return {
+      companyName: parentName,
+      actions: list,
+    };
+  })
+  .filter((p) => p.companyName && p.actions.length > 0);
+
+// Combined sources: company first, then all parents
+const allSources: any[] = [
+  ...sources,
+  ...parentReasonBlocks.flatMap((p) => p.sources),
+];
 
 /* ---------- Evaluation ---------- */
 const evaln = company.Evaluation ?? null;
@@ -81,11 +146,13 @@ const sentiment: "good" | "bad" | undefined =
   evaln?.sentiment === "good" || evaln?.sentiment === "bad" ? evaln.sentiment : undefined;
 
 const badgeClass =
-  sentiment === "good" ? "badge badge-success normal-case"
-: sentiment === "bad"  ? "badge badge-error normal-case"
-: "";
+  sentiment === "good"
+    ? "badge badge-success normal-case"
+    : sentiment === "bad"
+    ? "badge badge-error normal-case"
+    : "";
 
-/* Reasoning Tags — support all Strapi shapes */
+// reasoning tags
 let rawTags: any[] = [];
 if (Array.isArray(evaln?.reasoning_tags)) {
   rawTags = evaln.reasoning_tags;
@@ -98,7 +165,6 @@ const reasonTags = rawTags
 
 const evalSummary = evaln?.summary ?? "";
 
-/* text color for colored reasoning tags */
 function textColorFor(bg: string) {
   if (!bg) return "white";
   const c = bg.replace("#", "");
@@ -108,41 +174,74 @@ function textColorFor(bg: string) {
   return ((0.299 * r + 0.587 * g + 0.114 * b) / 255) > 0.6 ? "black" : "white";
 }
 
+// Build canonical URL for this page
+const pageUrl = new URL(`/company/${company.slug}/`, Astro.site).toString();
+
 /* ---------- Contact (dynamic zone) ---------- */
 const contactItems: any[] = Array.isArray(company.contact) ? company.contact : [];
+const socials = contactItems.filter((c) => c?.__component === "contact.social-profile");
 
-const websites  = contactItems.filter((c) => c?.__component === "contact.website");
-const socials   = contactItems.filter((c) => c?.__component === "contact.social-profile");
-const emails    = contactItems.filter((c) => c?.__component === "contact.email");
-const phones    = contactItems.filter((c) => c?.__component === "contact.phone");
-const addresses = contactItems.filter((c) => c?.__component === "contact.addressss");
+/* ---------- Share config (Strapi overrides + fallbacks) ---------- */
+const shareSettings = company.ShareSettings || company.share_settings || {};
+
+const shareEnabled = shareSettings.Enable ?? true;
+
+const canonicalUrl =
+  shareSettings.link_override?.trim() ||
+  `https://bigbeautifulboycott.us/company/${company.slug}`;
+
+// base text fallbacks
+const baseTitle = `${company.name} – Big Beautiful Boycott`;
+const baseMessage =
+  shareSettings.message?.trim() ||
+  company.intro ||
+  company.about ||
+  `Learn more about ${company.name} on Big Beautiful Boycott.`;
+
+const baseShort =
+  shareSettings.message_short?.trim() ||
+  `${company.name} on Big Beautiful Boycott`;
+
+const shareTitle = shareSettings.title?.trim() || baseTitle;
+const shareMessage = baseMessage;
+const shareMessageShort = baseShort;
+const shareHashtags = shareSettings.hashtags?.trim() || "BigBeautifulBoycott";
 ---
 
 <Base>
   <article class="company prose max-w-none">
-    <!-- Header -->
     <CompanyHeader company={company} />
+
+    {shareEnabled && (
+      <CompanyShare
+        url={canonicalUrl}
+        title={shareTitle}
+        message={shareMessage}
+        messageShort={shareMessageShort}
+        hashtags={shareHashtags}
+      />
+    )}
 
     {socials.length > 0 && (
       <div>
         <div class="company-social">
           {socials.map((s) => {
             const iconUrl = iconForPlatform(s.platform);
-            const label   = s.label ?? s.platform;
-            const href    = String(s.url || "").startsWith("http") ? s.url : `https://${s.url}`;
+            const label = s.label ?? s.platform;
+            const href = String(s.url || "").startsWith("http") ? s.url : `https://${s.url}`;
             return (
-              <a href={href}
+              <a
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                 class="company-social-item"
-                 data-gtm="company_outbound"
-                 data-dest="website"
-                 data-company-slug={company.slug}
-                 data-company-name={company.name}
-                 >
-                {iconUrl && <img src={iconUrl}
-                alt={String(s.platform)} loading="lazy" />}
-                <span>{label}</span>
+                class="company-social-item"
+                data-gtm="company_outbound"
+                data-dest="website"
+                data-company-slug={company.slug}
+                data-company-name={company.name}
+              >
+                {iconUrl && <img src={iconUrl} alt={String(s.platform)} loading="lazy" />}
+                <span>{company.name} {label}</span>
               </a>
             );
           })}
@@ -150,145 +249,35 @@ const addresses = contactItems.filter((c) => c?.__component === "contact.address
       </div>
     )}
 
-    {reasoning && (
-      <section class="mt-8" id="evidence">
-        <h2>Evidence & Context</h2>
-        <div class="prose max-w-none" set:html={renderBlocks(reasoning)} />
+    {introHtml && (
+      <section class="mt-6">
+        <div class="prose max-w-none" set:html={introHtml} />
       </section>
     )}
 
-    {howTo && (
-      <section class="mt-8">
-        <h2>How to Boycott</h2>
-        <div class="prose max-w-none" set:html={renderBlocks(howTo)} />
-      </section>
-    )}
-    <div class="prose max-w-none">
-      🚫Don’t harass employees or patrons of this company.<br>
-    🚫Don’t spread misinformation.
-    </div>
+    {/* Evidence & Context + parent-company reasoning */}
+    <CompanyReasoning
+      reasoning_html={reasoningHtml}
+      parent_reason_blocks={parentReasonBlocks}
+    />
 
-    <!-- Contact -->
-    {contactItems.length > 0 && (
-      <section class="mt-10 contact">
-        <h2>Contact</h2>
+    {/* Action items: company first, then parent; note/yes/maybe/no order with emojis */}
+    <CompanyActionItems
+      companyName={company.name}
+      sentiment={sentiment}
+      companyActions={actions}
+      parentActions={parentActions}
+    />
 
-        <div class="contact-group">
-          {websites.some((w) => !w.private) && (
-            <div class="contact-subgroup">
-              <h3>Websites</h3>
-              <ul class="contact-list contact-list--web">
-                {websites
-                  .filter((w) => !w.private)
-                  .map((w) => {
-                    const label = w.type ?? "Website";
-                    const raw   = String(w.url || "");
-                    const href  = raw.startsWith("http") ? raw : `https://${raw}`;
-                    let host = raw;
-                    try {
-                      host = new URL(href).hostname.replace(/^www\./, "");
-                    } catch (_) {}
-                    return (
-                      <li>
-                        <a
-                          class="contact-link"
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          data-gtm="company_outbound"
-                          data-dest="website"
-                          data-company-slug={company.slug}
-                          data-company-name={company.name}
-                          >
-                          <span class="contact-label">{label}</span>
-                          <span class="contact-domain">{host}</span>
-                        </a>
-                      </li>
-                    );
-                  })}
-              </ul>
-            </div>
-          )}
-
-          {phones.some((p) => !p.private) && (
-            <div class="contact-subgroup">
-              <h3>Phone</h3>
-              <ul class="contact-list">
-                {phones
-                  .filter((p) => !p.private)
-                  .map((p) => (
-                    <li>
-                      <a class="contact-link" href={`tel:${p.phone_number}`}>
-                        <span class="contact-label">{p.type ?? "Main"}</span>
-                        <span class="contact-domain">{p.phone_number}</span>
-                      </a>
-                      {p.note && <span class="contact-note">— {p.note}</span>}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          )}
-
-          {emails.some((e) => !e.private) && (
-            <div class="contact-subgroup">
-              <h3>Email</h3>
-              <ul class="contact-list">
-                {emails
-                  .filter((e) => !e.private)
-                  .map((e) => (
-                    <li>
-                      <a class="contact-link" href={`mailto:${e.email}`}>
-                        <span class="contact-label">{e.type ?? "Email"}</span>
-                        <span class="contact-domain">{e.email}</span>
-                      </a>
-                      {e.note && <span class="contact-note">— {e.note}</span>}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          )}
-
-          {addresses.some((a) => !a.private) && (
-            <div class="contact-subgroup">
-              <h3>Addresses</h3>
-              <ul class="contact-list contact-list--addr">
-                {addresses
-                  .filter((a) => !a.private)
-                  .map((a) => {
-                    const lines = [
-                      a.address_1,
-                      a.address_2,
-                      [a.city, a.state, a.postal_code].filter(Boolean).join(", "),
-                      a.country,
-                    ].filter(Boolean);
-                    return (
-                      <li class="contact-address">
-                        <div class="addr-type">{a.type ?? "Address"}</div>
-                        <div class="addr-lines">
-                          {lines.map((ln) => (<div>{ln}</div>))}
-                        </div>
-                        {a.note && <div class="addr-note">{a.note}</div>}
-                      </li>
-                    );
-                  })}
-              </ul>
-            </div>
-          )}
-        </div>
-      </section>
-    )}
-
-    {tags.length > 0 && (
-      <section class="mt-8">
-        <h2>Topics</h2>
-        <div class="flex flex-wrap gap-2">
-          {tags.map((t) => (
-            <span class="badge badge-ghost">{t}</span>
-          ))}
-        </div>
-      </section>
-    )}
+    <CompanyContact
+      companySlug={company.slug}
+      companyName={company.name}
+      contactItems={contactItems}
+    />
 
 
+
+    {/* Combined sources at the bottom */}
+    <CompanySources sources={allSources} />
   </article>
 </Base>

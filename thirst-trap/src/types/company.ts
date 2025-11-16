@@ -1,14 +1,22 @@
 // src/types/company.ts
 import type { StrapiImage } from "./strapi";
 
-export type Tag = { name: string; slug: string; summary?: string };
 
-export type Category = {
-  name: string;
-  slug: string;
-  description?: string;
-  color?: string;        // you are storing this on Category
-  icon?: string;
+
+export type ShareSettings = {
+  Enable?: boolean;
+  share_image?:
+    | { data?: { attributes?: StrapiImage } }
+    | { attributes?: StrapiImage }
+    | StrapiImage
+    | null;
+  creator_notes?: string | null;
+
+  title?: string | null;
+  message?: string | null;
+  message_short?: string | null;
+  hashtags?: string | null;      // comma or space separated
+  link_override?: string | null;
 };
 
 export type Link = {
@@ -31,6 +39,12 @@ export type ReasoningTag = {
   severity?: string;
 };
 
+export type ReasoningBlock = {
+  heading?: string;
+  content?: string;
+  Source?: any[];
+};
+
 export type Evaluation = {
   summary?: string;
   /** relation can arrive either populated as an array or as {data:[{attributes:...}]} */
@@ -42,26 +56,33 @@ export type Evaluation = {
 export type Company = {
   name: string;
   slug: string;
-  state?: "create" | "refine" | "stage" | "hold";
-
-  // Media shapes (either direct attributes or wrapped in data)
+  ticker?: string | null;
+  boycott_target?: boolean;
+  intro?: string;   // CKEditor HTML
+  about?: string;   // short 30–65 char blurb
+  Reasoning?: ReasoningBlock;
   logo?:
     | { data?: { attributes?: StrapiImage } }
     | { attributes?: StrapiImage }
     | StrapiImage;
-
+  sector?: any;
   category?: { data?: { attributes?: Category } } | { attributes?: Category } | Category;
-
-  tags?: { data?: { attributes?: Tag }[] }; // (you said these aren't used now)
-
+  tags?: { data?: { attributes?: Tag }[] };
   Website?: Link;
   Socials?: Link[];
-  about?: string;
-  how_to_boycott?: unknown;
-
-  /** keep for legacy content that used `reason` single relation */
   reason?: { data?: { attributes?: { name?: string; description?: string } } };
-
-  /** the new structured evaluation with reasoning tags */
   Evaluation?: Evaluation;
+  share_settings?: ShareSettings | null;
+  parent_company?: any; // Strapi relation (likely { data: [...] })
+  week?: {
+    data?: {
+      attributes?: {
+        name?: string;
+        slug?: string;
+        week_number?: number;
+        icon?: string | null;
+        color?: string | null;
+      };
+    };
+  };
 };

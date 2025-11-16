@@ -1,0 +1,133 @@
+---
+// src/components/CompanyActionItems.astro
+
+export type ActionType = "yes" | "no" | "maybe" | "note";
+
+type Action = {
+  Type: ActionType;
+  Title: string;
+  Description: string;
+};
+
+type ParentActions = {
+  companyName: string;
+  actions: Action[];
+};
+
+interface Props {
+  companyName: string;
+  sentiment?: "good" | "bad";
+  companyActions?: Action[];
+  parentActions?: ParentActions[];
+}
+
+const {
+  companyName,
+  sentiment = "bad",
+  companyActions = [],
+  parentActions = [],
+} = Astro.props;
+
+// Heading text
+const heading =
+  sentiment === "good"
+    ? `How to Support ${companyName}`
+    : `How to Boycott ${companyName}`;
+
+// Order: note → yes → maybe → no
+const typeOrder: Record<ActionType, number> = {
+  note: 0,
+  yes: 1,
+  maybe: 2,
+  no: 3,
+};
+
+const typeEmoji: Record<ActionType, string> = {
+  note: "📝",
+  yes: "✅",
+  maybe: "🤔",
+  no: "⛔️",
+};
+
+const typeLabel: Record<ActionType, string> = {
+  note: "You should know",
+  yes: "Do this",
+  maybe: "Consider",
+  no: "Avoid",
+};
+
+// Flatten + tag which ones are from parents
+const ownItems = companyActions.map((a, idx) => ({
+  ...a,
+  fromParent: false,
+  parentName: "",
+  key: `own-${idx}`,
+}));
+
+const parentItems = parentActions.flatMap((p) =>
+  (p.actions || []).map((a, idx) => ({
+    ...a,
+    fromParent: true,
+    parentName: p.companyName,
+    key: `parent-${p.companyName}-${idx}`,
+  })),
+);
+
+// Merge & sort
+const merged = [...ownItems, ...parentItems].sort((a, b) => {
+  return typeOrder[a.Type] - typeOrder[b.Type];
+});
+---
+
+{merged.length > 0 && (
+  <section class="company-actions" id="actions">
+    <h2 class="company-actions__heading">{heading}</h2>
+
+    <div class="company-actions__list">
+      {merged.map((item, idx) => {
+        const id = `company-action-${idx}`;
+        const emoji = typeEmoji[item.Type] ?? "•";
+        const chipLabel = typeLabel[item.Type] ?? "";
+        const parentText =
+          item.fromParent && item.parentName
+            ? `From parent company: ${item.parentName}`
+            : "";
+
+        return (
+          <div class="company-action" key={item.key}>
+            {/* checkbox drives mobile expand/collapse; ignored on desktop */}
+            <input
+              id={id}
+              type="checkbox"
+              class="company-action__toggle"
+              aria-hidden="true"
+            />
+
+            <label class="company-action__header" for={id}>
+              <span class="company-action__emoji" aria-hidden="true">
+                {emoji}
+              </span>
+              <span class="company-action__title">
+                {item.Title}
+              </span>
+              <span class={`company-action__chip company-action__chip--${item.Type}`}>
+                {chipLabel}
+              </span>
+            </label>
+
+            <div class="company-action__body">
+              <p class="company-action__description">
+                {item.Description}
+              </p>
+              {parentText && (
+                <p class="company-action__parent">
+                  {parentText}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+)}

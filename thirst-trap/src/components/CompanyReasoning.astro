@@ -1,0 +1,45 @@
+---
+// src/components/CompanyReasoning.astro
+
+export interface ParentReasonBlock {
+  name: string;
+  slug?: string;
+  reasoningHtml: string;
+}
+
+export interface Props {
+  reasoning_html?: string;              // CKEditor HTML for this company
+  parent_reason_blocks?: ParentReasonBlock[]; // ordered list of parents
+}
+
+const {
+  reasoning_html = "",
+  parent_reason_blocks = [],
+} = Astro.props;
+---
+
+{(reasoning_html || parent_reason_blocks.length > 0) && (
+  <section class="mt-8" id="evidence">
+    <h2>Evidence & Context</h2>
+
+    {/* This company’s reasoning */}
+    {reasoning_html && (
+      <article class="mt-6 reasoning-block">
+        <div class="prose max-w-none" set:html={reasoning_html} />
+      </article>
+    )}
+
+    {/* Parent company reasoning, in UI order */}
+    {parent_reason_blocks.map((p) => (
+      <section
+        class="mt-8 reasoning-block"
+        aria-label={`Parent company reasoning: ${p.name}`}
+      >
+        <h3 class="text-sm font-semibold tracking-wide uppercase text-gray-500 mb-2">
+          Parent company: {p.name}
+        </h3>
+        <div class="prose max-w-none" set:html={p.reasoningHtml} />
+      </section>
+    ))}
+  </section>
+)}

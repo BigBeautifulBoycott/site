@@ -1,0 +1,208 @@
+---
+import { iconForPlatform } from "../lib/socialIcons";
+
+interface Props {
+  companySlug: string;
+  companyName: string;
+  contactItems: any[];
+}
+
+const { companySlug, companyName, contactItems } = Astro.props;
+
+const websites  = Array.isArray(contactItems)
+  ? contactItems.filter((c) => c?.__component === "contact.website")
+  : [];
+const socials   = Array.isArray(contactItems)
+  ? contactItems.filter((c) => c?.__component === "contact.social-profile")
+  : [];
+const emails    = Array.isArray(contactItems)
+  ? contactItems.filter((c) => c?.__component === "contact.email")
+  : [];
+const phones    = Array.isArray(contactItems)
+  ? contactItems.filter((c) => c?.__component === "contact.phone")
+  : [];
+const addresses = Array.isArray(contactItems)
+  ? contactItems.filter((c) => c?.__component === "contact.addressss")
+  : [];
+---
+
+{contactItems.length > 0 && (
+  <section class="mt-10 contact" id="contact">
+    <h2>Contact</h2>
+
+    <p class="text-sm opacity-70 mt-1 mb-4 max-w-prose">
+      These are the public contact methods for this company. If you have thoughts, feedback, or concerns about their actions or policies, these are the channels they provide for hearing from the public.
+    </p>
+
+    <div class="contact-group">
+      {/* Websites --------------------------------------------------- */}
+      {websites.some((w) => !w.private) && (
+        <div class="contact-subgroup">
+          <h3>Websites</h3>
+          <ul class="contact-list contact-list--web">
+            {websites
+              .filter((w) => !w.private)
+              .map((w) => {
+                const label = w.type ?? "Website";
+                const raw   = String(w.url || "");
+                const href  = raw.startsWith("http") ? raw : `https://${raw}`;
+                let host = raw;
+                try {
+                  host = new URL(href).hostname.replace(/^www\./, "");
+                } catch (_) {}
+                return (
+                  <li>
+                    <a
+                      class="contact-link"
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-gtm="company_outbound"
+                      data-dest="website"
+                      data-company-slug={companySlug}
+                      data-company-name={companyName}
+                    >
+                      <span class="contact-label">{label}</span>
+                      <span class="contact-domain">{host}</span>
+                    </a>
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      )}
+
+      {/* Phone ------------------------------------------------------ */}
+      {phones.some((p) => !p.private) && (
+        <div class="contact-subgroup">
+          <h3>Phone</h3>
+          <ul class="contact-list">
+            {phones
+              .filter((p) => !p.private)
+              .map((p) => (
+                <li>
+                  <a
+                    class="contact-link"
+                    href={`tel:${p.phone_number}`}
+                    data-gtm="company_outbound"
+                    data-dest="phone"
+                    data-company-slug={companySlug}
+                    data-company-name={companyName}
+                  >
+                    <span class="contact-label">{p.type ?? "Main"}</span>
+                    <span class="contact-domain">{p.phone_number}</span>
+                  </a>
+                  {p.note && <span class="contact-note">— {p.note}</span>}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Email ------------------------------------------------------ */}
+      {emails.some((e) => !e.private) && (
+        <div class="contact-subgroup">
+          <h3>Email</h3>
+          <ul class="contact-list">
+            {emails
+              .filter((e) => !e.private)
+              .map((e) => (
+                <li>
+                  <a
+                    class="contact-link"
+                    href={`mailto:${e.email}`}
+                    data-gtm="company_outbound"
+                    data-dest="email"
+                    data-company-slug={companySlug}
+                    data-company-name={companyName}
+                  >
+                    <span class="contact-label">{e.type ?? "Email"}</span>
+                    <span class="contact-domain">{e.email}</span>
+                  </a>
+                  {e.note && <span class="contact-note">— {e.note}</span>}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Social ----------------------------------------------------- */}
+      {socials.some((s) => !s.private) && (
+        <div class="contact-subgroup">
+          <h3>Social</h3>
+          <ul class="contact-list contact-list--social">
+            {socials
+              .filter((s) => !s.private)
+              .map((s) => {
+                const raw = String(s.url || "");
+                const href = raw.startsWith("http") ? raw : `https://${raw}`;
+                let handleOrHost = raw;
+                try {
+                  const u = new URL(href);
+                  handleOrHost = u.hostname.replace(/^www\./, "");
+                } catch (_) {
+                  // fall back to raw
+                }
+
+                const label = s.label ?? s.platform ?? "Profile";
+                const iconUrl = iconForPlatform(s.platform);
+
+                return (
+                  <li>
+                    <a
+                      class="contact-link contact-link--social"
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-gtm="company_outbound"
+                      data-dest="social"
+                      data-company-slug={companySlug}
+                      data-company-name={companyName}
+                    >
+                      {iconUrl && (
+                        <img
+                          src={iconUrl}
+                          alt={String(s.platform)}
+                          class="contact-social-icon"
+                          loading="lazy"
+                        />
+                      )}
+                      <span class="contact-label">{label}</span>
+                    </a>
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      )}
+
+      {/* Addresses -------------------------------------------------- */}
+      {addresses.some((a) => !a.private) && (
+        <div class="contact-subgroup">
+          <h3>Addresses</h3>
+          <ul class="contact-list contact-list--addr">
+            {addresses
+              .filter((a) => !a.private)
+              .map((a) => {
+                const lines = [
+                  a.address_1,
+                  a.address_2,
+                  [a.city, a.state, a.postal_code].filter(Boolean).join(", "),
+                  a.country,
+                ].filter(Boolean);
+                return (
+                  <li class="contact-address">
+                    <div class="addr-type">{a.type ?? "Address"}</div>
+                    <div class="addr-lines">
+                      {lines.map((ln) => <div>{ln}</div>)}
+                    </div>
+                    {a.note && <div class="addr-note">{a.note}</div>}
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      )}
+    </div>
+  </section>
+)}
