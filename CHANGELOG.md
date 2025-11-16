@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0](https://github.com/BigBeautifulBoycott/site/compare/v1.6.1...v1.7.0) (2025-11-16)
+
+
+### Features
+
+* faqs ([7203a9e](https://github.com/BigBeautifulBoycott/site/commit/7203a9eab0aadf250aadd95cbea34e0ffae22d2c))
+* improve company pages & cards ([6e9c4ef](https://github.com/BigBeautifulBoycott/site/commit/6e9c4ef794e92f0752b6dc28d5118a1412e5830a))
+* social share ([68b0f7d](https://github.com/BigBeautifulBoycott/site/commit/68b0f7d8d9cdfce9aee4559d8ffb4c9420431fc7))
+
+
+### Bug Fixes
+
+* Darkmode broken ([1b68396](https://github.com/BigBeautifulBoycott/site/commit/1b68396fd985028bf48f0ff0ac727fb753064909))
+* pages content type ([6e2e5dd](https://github.com/BigBeautifulBoycott/site/commit/6e2e5dd34c483f04d24e0082e0a2ac20d8a451c5))
+
 ## [1.6.1](https://github.com/BigBeautifulBoycott/site/compare/v1.6.0...v1.6.1) (2025-11-07)
 
 
